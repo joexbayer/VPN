@@ -46,3 +46,33 @@ int free_vpn_registry(struct vpn_registry* reg)
 
 	return 1;
 }
+
+/**
+ * register_connection - Registers a new connection
+ * @registry: registry to add too
+ * @client_virtual_ip: ip specified by client
+ * @new_connection: sockdaddr containing real IP off client.
+ *
+ * Adds a client to a empty registry entry.
+ * 
+ * returns entry id, MAC_CONNECTIONS if full
+ */
+int register_connection(struct vpn_connection* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection)
+{
+
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        if(registry[i] != NULL)
+        {
+            struct vpn_connection* vpc = malloc(sizeof(struct vpn_connection));
+            vpc->connection = new_connection;
+            vpc->vip_in = client_virtual_ip;
+            vpc->vip_out = 0; // TODO
+
+            return i;
+        }
+    }
+
+    return MAX_CONNECTIONS;
+
+}
