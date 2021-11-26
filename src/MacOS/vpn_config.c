@@ -16,7 +16,7 @@ int restore_gateway()
     int sys = system("route delete default");
     sys = system(cmd);
 
-    return 1;
+    return sys;
 }
 
 /**
@@ -74,7 +74,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
     sprintf(cmd,"route add %s %s", server_ip, gateway);
     sys = system(cmd);
 
-    return 1;
+    return sys;
 }
 
 /**
@@ -94,7 +94,7 @@ int create_tun_interface()
         perror("Cannot open tun0 dev\n");
         exit(1);
     }
-    sys = system("ifconfig tun0 inet 10.0.0.2 10.0.0.255 up");
+    int sys = system("ifconfig tun0 inet 10.0.0.2 10.0.0.255 up");
 
     return fd;   
 }
