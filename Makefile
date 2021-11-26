@@ -5,7 +5,7 @@ all: build
 
 build: src/Linux/*.c src/MacOS/*.c
 	gcc src/Linux/*.c -pthread $(CFLAGS) -o server.out
-	gcc src/MacOS/*.c $(CFLAGS) -o client.out
+	gcc src/MacOS/*.c -pthread $(CFLAGS) -o client.out
 
 client: build
 	server.out
