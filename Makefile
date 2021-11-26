@@ -10,6 +10,5 @@ build: src/Linux/*.c src/MacOS/*.c
 client: build
 	./build/server.out
 
-
 server: build
 	./build/client.out 
