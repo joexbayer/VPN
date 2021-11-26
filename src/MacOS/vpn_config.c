@@ -13,8 +13,8 @@ int restore_gateway()
 {
 	char cmd [1000] = {0x0};
     sprintf(cmd,"route add default %s", gateway);
-    system("route delete default");
-    system(cmd);
+    int sys = system("route delete default");
+    sys = system(cmd);
 
     return 1;
 }
@@ -64,15 +64,15 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 		exit(EXIT_FAILURE);
 	}
 	/* Delete default route and add new. */
-	system("route delete default");
+	int sys = system("route delete default");
 
 	char cmd [1000] = {0x0};
     sprintf(cmd,"route add %s 10.0.0.255", route);
-    system(cmd);
+    sys = system(cmd);
 
 	/* Add rule to allow traffic to vpn server */
     sprintf(cmd,"route add %s %s", server_ip, gateway);
-    system(cmd);
+    sys = system(cmd);
 
     return 1;
 }
@@ -94,7 +94,7 @@ int create_tun_interface()
         perror("Cannot open tun0 dev\n");
         exit(1);
     }
-    system("ifconfig tun0 inet 10.0.0.2 10.0.0.255 up");
+    sys = system("ifconfig tun0 inet 10.0.0.2 10.0.0.255 up");
 
     return fd;   
 }

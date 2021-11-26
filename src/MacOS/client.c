@@ -40,7 +40,7 @@ void* thread_socket2tun()
         {
         	continue;
         }
-        write(tun_fd, buffer, rc);
+        rc = write(tun_fd, buffer, rc);
 	}
 }
 
@@ -63,7 +63,7 @@ void* thread_tun2socket()
         {
         	continue;
         }
-        sendto(udp_socket, buffer, rc, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        rc = sendto(udp_socket, buffer, rc, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	}
 }
 
