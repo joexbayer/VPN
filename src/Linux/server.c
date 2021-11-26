@@ -37,7 +37,7 @@ void* thread_socket2tun()
 
 	while(1)
 	{
-        int rc = recvfrom(udp_socket, buffer, 2555, 0, (struct sockaddr*)&client_addr, &client_struct_length);
+        int rc = recvfrom(udp_socket, buffer, 2555, 0, (struct sockaddr*)&client_addr,(socklen_t*) &client_struct_length);
         if(rc <= 0)
         {
         	continue;
