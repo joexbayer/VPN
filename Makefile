@@ -8,7 +8,10 @@ build: src/Linux/*.c src/MacOS/*.c
 	gcc src/MacOS/*.c $(CFLAGS) -o client.out
 
 client: build
-	./build/server.out
+	server.out
 
 server: build
-	./build/client.out 
+	client.out 
+
+clean: server.out client.out
+	rm server.out client.out
