@@ -8,10 +8,10 @@ build: src/Linux/*.c src/MacOS/*.c
 	gcc src/MacOS/*.c -pthread $(CFLAGS) -o client.out
 
 client: build
-	server.out
+	sudo ./client.out 
 
 server: build
-	client.out 
+	sudo ./server.out
 
 clean: server.out client.out
-	rm server.out client.out
+	rm server.out client.out 

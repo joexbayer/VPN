@@ -118,7 +118,7 @@ int main(int argc, char const *argv[])
 	tun_fd = create_tun_interface();
 
 	int conf = configure_ip_forwarding("10.0.0.1/24");
-	if(conf <= 0)
+	if(conf == -1)
 	{
 		printf("[ERROR] Could not configure iptables!\n");
 		exit(EXIT_FAILURE);

@@ -97,7 +97,7 @@ int create_udp_socket(struct sockaddr_in* server_addr)
         exit(EXIT_FAILURE);
     }
 
-    if(bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
+    if(bind(sockfd, (struct sockaddr*)server_addr, sizeof(server_addr)) < 0){
         printf("Couldn't bind to the port\n");
         exit(EXIT_FAILURE);
     }

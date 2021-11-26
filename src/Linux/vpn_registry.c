@@ -92,6 +92,8 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
             registry->vpn_connection_registry[i] = vpc;
             registry->size++;
 
+            printf("[REGISTRY] New connection registered!\n");
+
             return i;
         }
     }

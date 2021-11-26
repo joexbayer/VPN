@@ -14,6 +14,4 @@ int decrypt(uint8_t* ciphertext, uint8_t* decrypted);
 int handle_incomming_packet(uint8_t* buffer);
 int handle_outgoing_packet(uint8_t* buffer, struct sockaddr_in connection_in);
 
-
-
 #endif
