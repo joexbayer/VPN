@@ -23,7 +23,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 
 	registry->vpn_ip_raw = sa.sin_addr.s_addr;
 
-    registry->size = 0;
+    registry->size = 1;
 
 	/* Set connections to NULL */
 	for (int i = 0; i < MAX_CONNECTIONS; ++i)
@@ -31,7 +31,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 		registry->vpn_connection_registry[i] = NULL;
 	}
 
-    printf("VPN registry successfully created!\n");
+    printf("VPN registry successfully created! %d\n", sa.sin_addr.s_addr);
 
 	return registry;
 }
