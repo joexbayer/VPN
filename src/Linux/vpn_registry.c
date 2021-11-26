@@ -18,7 +18,11 @@ struct vpn_registry* create_registry(uint8_t* ip)
 	registry->vpn_ip = malloc(strlen((char*) ip)+1);
 	strcpy((char*)registry->vpn_ip, (char*)ip);
 
-	registry->vpn_ip_raw = 0; // TODO: convert ip to int
+    struct sockaddr_in sa;
+    inet_pton(AF_INET, ip, &sa.sin_addr);
+
+	registry->vpn_ip_raw = sa.sin_addr;
+
     registry->size = 0;
 
 	/* Set connections to NULL */
@@ -79,9 +83,11 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
         if(registry->vpn_connection_registry[i] != NULL)
         {
             struct vpn_connection* vpc = malloc(sizeof(struct vpn_connection));
-            vpc->connection = new_connection;
+            struct sockaddr_in* conn = malloc(sizeof(struct sockaddr_in));
+            memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
+            vpc->connection = conn;
             vpc->vip_in = client_virtual_ip;
-            vpc->vip_out = 0; // TODO
+            vpc->vip_out = registry->vpn_ip_raw + registry->size;
 
             registry->vpn_connection_registry[i] = vpc;
             registry->size++;
@@ -92,4 +98,58 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
 
     return MAX_CONNECTIONS;
 
+}
+
+/**
+ * get_vpn_connection_addr - search for connection
+ * @registry: registry to search
+ * @addr: addr to search for.
+ *
+ * Serches for out ip of incomming connection
+ * 
+ * returns addr or 0
+ */
+int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
+{
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        if (registry->vpn_connection_registry[i] == NULL)
+        {
+            continue;
+        }
+
+        if(registry->vpn_connection_registry[i]->connection->sin_addr.s_addr == addr)
+        {
+            return registry->vpn_connection_registry[i]->vip_out;
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * get_vpn_connection_ip - search for connection
+ * @registry: registry to search
+ * @in_ip: in ip to search for.
+ *
+ * Searches for out ip of incomming connection
+ * 
+ * returns addr or 0
+ */
+struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip)
+{
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        if (registry->vpn_connection_registry[i] == NULL)
+        {
+            continue;
+        }
+
+        if(registry->vpn_connection_registry[i]->vip_out == in_ip)
+        {
+            return registry->vpn_connection_registry[i];
+        }
+    }
+
+    return NULL;
 }

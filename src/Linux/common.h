@@ -10,6 +10,9 @@
 #include <pthread.h>
 #include <signal.h>
 
+#include <linux/if.h>
+#include <linux/if_tun.h>
+
 struct ip_hdr {
     uint8_t ihl : 4;
     uint8_t version : 4;
