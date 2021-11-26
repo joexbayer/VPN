@@ -2,6 +2,8 @@
 #define VPN_REGISTRY_H value
 
 #include "common.h"
+#include "server.h"
+
 
 /** struct vpn_connection
  * Used to identify a client connected to the VPN.
@@ -39,12 +41,13 @@ struct vpn_registry
 	struct vpn_connection* vpn_connection_registry[MAX_CONNECTIONS];
 	uint8_t* vpn_ip;
 	uint32_t vpn_ip_raw;
+    uint8_t size;
 
 }__attribute__((packed));
 
 struct vpn_registry* create_registry(uint8_t* ip);
 
 int free_vpn_registry(struct vpn_registry* reg);
-int register_connection(struct vpn_connection* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection);
+int register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection);
 
 #endif

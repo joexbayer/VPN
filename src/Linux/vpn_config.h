@@ -2,6 +2,7 @@
 #define VPN_CONFIG value
 
 #include "common.h"
+#include "server.h"
 
 /* Creation and Configuration */
 int create_tun_interface();

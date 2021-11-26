@@ -1,5 +1,5 @@
-#ifndef INCLUDES_H
-#define INCLUDES_H value
+#ifndef INCLUDES
+#define INCLUDES value
 
 #include <stdio.h>
 #include <stdint.h>
@@ -7,8 +7,13 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <netinet/ip.h>
+#include <net/if.h>
 #include <pthread.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <sys/ioctl.h> // ioctl
+#include <unistd.h>
 
 struct ip_hdr {
     uint8_t ihl : 4;

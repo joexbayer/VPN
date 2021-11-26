@@ -9,4 +9,6 @@ int configure_ip_forwarding()
 	sudo iptables -A FORWARD -s 172.16.0.0/24 -m state --state RELATED,ESTABLISHED -j ACCEPT
 	sudo iptables -A FORWARD -d 172.16.0.0/24 -j ACCEPT	
 	*/
+
+	return 1;
 }
