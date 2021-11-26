@@ -12,6 +12,8 @@
 
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
 
 struct ip_hdr {
     uint8_t ihl : 4;

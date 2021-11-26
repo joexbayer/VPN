@@ -19,7 +19,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 	strcpy((char*)registry->vpn_ip, (char*)ip);
 
     struct sockaddr_in sa;
-    inet_pton(AF_INET, ip, &sa.sin_addr);
+    inet_pton(AF_INET, ip, &sa.sin_addr.s_addr);
 
 	registry->vpn_ip_raw = sa.sin_addr;
 
