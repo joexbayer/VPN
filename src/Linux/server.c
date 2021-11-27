@@ -154,8 +154,12 @@ int main(int argc, char const *argv[])
         printf("\ncan't create thread :[%s]", strerror(err));
     }
 
-    pthread_join(tid[0], NULL);
-    pthread_join(tid[1], NULL);
+    while(1)
+    {
+        sleep(2);
+        printf("\rConnected Users: %d", registry->size);
+        fflush(stdout);
+    }
 
     /* code */
     return 0;

@@ -18,6 +18,8 @@
 struct vpn_registry* create_registry(uint8_t* ip)
 {
     struct vpn_registry* registry = malloc(sizeof(struct vpn_registry));
+
+    /* Allocate IP and remove CIDR */
     registry->vpn_ip = malloc(strlen((char*) ip)-2);
     memcpy((char*)registry->vpn_ip, (char*)ip, strlen((char*)ip)-3);
     registry->vpn_ip[strlen((char*) ip)-2] = 0;
@@ -61,6 +63,7 @@ inline int free_vpn_registry(struct vpn_registry* reg)
         {
             continue;
         }
+        free(reg->vpn_connection_registry[i]->connection);
         free(reg->vpn_connection_registry[i]);
     }
 

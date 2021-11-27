@@ -1,9 +1,12 @@
 #include "client.h"
 
 static pthread_t tid[2];
+// TODO, MOVE TO CONNECTION STRUCT
 static struct sockaddr_in server_addr;
 static int udp_socket;
 static int tun_fd;
+
+static struct vpn_connection* current_connection;
 
 /**
  * stop_client - Signal function
@@ -40,6 +43,7 @@ void* thread_socket2tun()
         {
         	continue;
         }
+        current_connection->data_sent += rc;
         rc = write(tun_fd, buffer, rc);
 	}
 }
@@ -63,6 +67,7 @@ void* thread_tun2socket()
         {
         	continue;
         }
+        current_connection->data_recv += rc;
         rc = sendto(udp_socket, buffer, rc, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
 	}
 }
@@ -129,10 +134,16 @@ int start_vpn_client(char* route, char* server_ip)
 	/* Start socket / TUN threads */
 	start_threads();
 
+	current_connection = malloc(sizeof(struct vpn_connection));
+
     printf("VPN Client is running...\n");
 
-    pthread_join(tid[0], NULL);
-    pthread_join(tid[1], NULL);
+    while(1)
+    {
+        sleep(2);
+        printf("\rStats - Sent: %d, Recv: %d", current_connection->data_sent, current_connection->data_recv);
+        fflush(stdout);
+    }
 
 	return 0;
 }
