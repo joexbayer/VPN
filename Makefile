@@ -11,7 +11,7 @@ build-linux: src/Linux/*.c
 	gcc src/Linux/*.c -pthread $(CFLAGS) -o server.out
 
 client: build-mac
-	sudo ./client.out 
+	sudo ./client.out default 192.168.1.8
 
 server: build-linux
 	sudo ./server.out

@@ -150,5 +150,11 @@ int start_vpn_client(char* route, char* server_ip)
 
 int main(int argc, char const *argv[])
 {
-	start_vpn_client("default", "192.168.1.8");
+	if(argc != 3)
+	{
+		printf("Usage: %d <route> <vpn ip>");
+		exit(EXIT_FAILURE);
+	}
+
+	start_vpn_client(argv[1], argv[2]);
 }

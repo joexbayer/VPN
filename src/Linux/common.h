@@ -16,8 +16,6 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#include <unistd.h>
-
 struct ip_hdr {
     uint8_t ihl : 4;
     uint8_t version : 4;
