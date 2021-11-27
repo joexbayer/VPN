@@ -120,7 +120,7 @@ int start_vpn_client(char* route, char* server_ip)
 
 	/* Configure all IP routes. */
 	int conf = configure_route((uint8_t*) route, (uint8_t*) server_ip);
-	if(conf <= 0)
+	if(conf < 0)
 	{
 		printf("[ERROR] Could not configure ip route.\n");
 		exit(EXIT_FAILURE);
@@ -139,5 +139,5 @@ int start_vpn_client(char* route, char* server_ip)
 
 int main(int argc, char const *argv[])
 {
-	start_vpn_client("default", "10.0.0.1");
+	start_vpn_client("default", "192.168.1.8");
 }
