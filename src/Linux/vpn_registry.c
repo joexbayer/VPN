@@ -1,6 +1,9 @@
 #include "vpn_registry.h"
 #include "server.h"
 
+
+#define DEBUG 0
+
 /**
  * create_registry - Creates a vpn registry, bound to a ip.
  * @ip: ip to assign registry to.
@@ -14,26 +17,30 @@
  */
 struct vpn_registry* create_registry(uint8_t* ip)
 {
-	struct vpn_registry* registry = malloc(sizeof(struct vpn_registry));
-	registry->vpn_ip = malloc(strlen((char*) ip)+1);
-	strcpy((char*)registry->vpn_ip, (char*)ip);
+    struct vpn_registry* registry = malloc(sizeof(struct vpn_registry));
+    registry->vpn_ip = malloc(strlen((char*) ip)-2);
+    memcpy((char*)registry->vpn_ip, (char*)ip, strlen((char*)ip)-3);
+    registry->vpn_ip[strlen((char*) ip)-2] = 0;
 
     struct sockaddr_in sa;
-    inet_pton(AF_INET, ip, &sa.sin_addr);
+    inet_pton(AF_INET, registry->vpn_ip, &sa.sin_addr);
 
-	registry->vpn_ip_raw = sa.sin_addr.s_addr;
+    if(DEBUG)
+        printf("converted ip %s to %d\n", registry->vpn_ip, sa.sin_addr.s_addr);
+
+    registry->vpn_ip_raw = sa.sin_addr.s_addr;
 
     registry->size = 1;
 
-	/* Set connections to NULL */
-	for (int i = 0; i < MAX_CONNECTIONS; ++i)
-	{
-		registry->vpn_connection_registry[i] = NULL;
-	}
+    /* Set connections to NULL */
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        registry->vpn_connection_registry[i] = NULL;
+    }
 
-    printf("VPN registry successfully created! %d\n", sa.sin_addr.s_addr);
+    printf("VPN registry successfully created!\n");
 
-	return registry;
+    return registry;
 }
 
 /**
@@ -57,12 +64,12 @@ inline int free_vpn_registry(struct vpn_registry* reg)
         free(reg->vpn_connection_registry[i]);
     }
 
-	free(reg->vpn_ip);
-	free(reg);
+    free(reg->vpn_ip);
+    free(reg);
 
     printf("VPN registry successfully removed.\n");
 
-	return 1;
+    return 1;
 }
 
 /**
@@ -80,21 +87,22 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
 
     for (int i = 0; i < MAX_CONNECTIONS; ++i)
     {
-        if(registry->vpn_connection_registry[i] != NULL)
+        if(registry->vpn_connection_registry[i] == NULL)
         {
             struct vpn_connection* vpc = malloc(sizeof(struct vpn_connection));
             struct sockaddr_in* conn = malloc(sizeof(struct sockaddr_in));
             memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
             vpc->connection = conn;
             vpc->vip_in = client_virtual_ip;
-            vpc->vip_out = registry->vpn_ip_raw + registry->size;
+            vpc->vip_out = htonl(registry->vpn_ip_raw) + registry->size;
+
+            if(DEBUG)
+                printf("Assigned new ip: %d, from %d + %d\n",vpc->vip_out,  registry->vpn_ip_raw, registry->size);
 
             registry->vpn_connection_registry[i] = vpc;
             registry->size++;
 
-            printf("[REGISTRY] New connection registered!\n");
-
-            return i;
+            return vpc->vip_out;
         }
     }
 
