@@ -54,6 +54,12 @@ void* thread_socket2tun()
         if(out_ip == 0)
         {
             out_ip = register_connection(registry, hdr->saddr, client_addr);
+            if(out_ip == 255)
+            {
+                printf("[warning] Cannot accept more connections!\n");
+                pthread_mutex_unlock(&lock);
+                continue;
+            }
         }
         pthread_mutex_unlock(&lock);
 
@@ -95,12 +101,11 @@ void* thread_tun2socket()
         /* Look for connection based on virtual ip inn */
         pthread_mutex_lock(&lock);
         struct vpn_connection* conn = get_vpn_connection_ip(registry, hdr->daddr);
+        pthread_mutex_unlock(&lock);
         if(conn == NULL)
         {
-            pthread_mutex_unlock(&lock);
             continue;
         }
-        pthread_mutex_unlock(&lock);
 
         /* Replace destination with user chosen ip */
         hdr->daddr = conn->vip_in;
