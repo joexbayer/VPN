@@ -11,6 +11,7 @@
  * @vip_out: virtual IP that is used to identify the client on the server virtual network.
  * @vip_in: virtual IP that the client specified when connection.
  * @connection: sockaddr_in that contains clients IP and port.
+ * @ts: timestamp, used to check if connection is dead.
  * @key: key used for AES encryption.
  * 
  * Struct is needed to be able to sperate incomming traffic based on client.
@@ -21,6 +22,7 @@ struct vpn_connection
 	uint32_t vip_out;
 	uint32_t vip_in;
 	struct sockaddr_in* connection;
+    struct timeval ts;
 	uint8_t* key;
 
 }__attribute__((packed));
@@ -52,5 +54,7 @@ int register_connection(struct vpn_registry* registry, uint32_t client_virtual_i
 
 int get_vpn_connection_addr(struct vpn_registry* registry, int addr);
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip);
+
+int registry_check_timeout(struct vpn_registry* registry);
 
 #endif

@@ -54,7 +54,7 @@ int configure_ip_forwarding(char* virtual_subnet)
 {
 
     char cmd [1000] = {0x0};
-    sprintf(cmd,"ifconfig tun0 %s mtu 1400 up", virtual_subnet);
+    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
     int sys = system(cmd);
     sys = system("sysctl -w net.ipv4.ip_forward=1");
 

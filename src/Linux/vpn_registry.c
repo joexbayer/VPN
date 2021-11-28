@@ -97,7 +97,7 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
             memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
             vpc->connection = conn;
             vpc->vip_in = client_virtual_ip;
-            vpc->vip_out = htonl(registry->vpn_ip_raw) + registry->size;
+            vpc->vip_out = htonl(registry->vpn_ip_raw) + (i+1);
 
             if(DEBUG)
                 printf("Assigned new ip: %d, from %d + %d\n",vpc->vip_out,  registry->vpn_ip_raw, registry->size);
@@ -133,6 +133,7 @@ int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
 
         if(registry->vpn_connection_registry[i]->connection->sin_addr.s_addr == addr)
         {
+            gettimeofday(&(registry->vpn_connection_registry[i]->ts), 0);
             return registry->vpn_connection_registry[i]->vip_out;
         }
     }
@@ -165,4 +166,35 @@ struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int 
     }
 
     return NULL;
+}
+
+/**
+ * get_vpn_connection_ip - search for connection
+ * @registry: registry to check
+ *
+ * Look if any connections have timed out
+ * 
+ * returns 1
+ */
+int registry_check_timeout(struct vpn_registry* registry)
+{
+    struct timeval now;
+    gettimeofday(&now, 0);
+
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        if (registry->vpn_connection_registry[i] != NULL)
+        {
+            double dif = (now.tv_sec - registry->vpn_connection_registry[i]->ts.tv_sec) * 1000 + (now.tv_usec - registry->vpn_connection_registry[i]->ts.tv_usec) / 1000;
+            if(dif > 3000)
+            {
+                free(registry->vpn_connection_registry[i]->connection);
+                free(registry->vpn_connection_registry[i]);
+                registry->vpn_connection_registry[i] = NULL;
+                registry->size -= 1;
+            }
+        }
+    }
+
+    return 1;
 }

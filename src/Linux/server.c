@@ -156,9 +156,13 @@ int main(int argc, char const *argv[])
 
     while(1)
     {
-        sleep(2);
+        sleep(3);
         printf("\rConnected Users: %d", registry->size);
         fflush(stdout);
+
+        pthread_mutex_lock(&lock);
+        registry_check_timeout(registry);
+        pthread_mutex_unlock(&lock);
     }
 
     /* code */
