@@ -67,7 +67,7 @@ int configure_ip_forwarding(char* virtual_subnet)
     sprintf(cmd,"iptables -A FORWARD -d %s -j ACCEPT", virtual_subnet);
     sys = system(cmd);
 
-    return 1;
+    return sys;
 }
 
 /**

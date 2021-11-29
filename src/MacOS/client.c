@@ -141,8 +141,10 @@ int start_vpn_client(char* route, char* server_ip)
     while(1)
     {
         sleep(2);
-        printf("\rStats - Sent: %d, Recv: %d", current_connection->data_sent, current_connection->data_recv);
+        printf("\rStats - Sent: %d kb/s, Recv: %d kb/s", (current_connection->data_sent/1024)/2, (current_connection->data_recv/1024)/2);
         fflush(stdout);
+        current_connection->data_sent = 0;
+        current_connection->data_recv = 0;
     }
 
 	return 0;

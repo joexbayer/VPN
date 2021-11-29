@@ -25,14 +25,13 @@ struct vpn_registry* create_registry(uint8_t* ip)
     registry->vpn_ip[strlen((char*) ip)-2] = 0;
 
     struct sockaddr_in sa;
-    inet_pton(AF_INET, registry->vpn_ip, &sa.sin_addr);
+    inet_pton(AF_INET, (char *)registry->vpn_ip, &sa.sin_addr);
 
     if(DEBUG)
         printf("converted ip %s to %d\n", registry->vpn_ip, sa.sin_addr.s_addr);
 
     registry->vpn_ip_raw = sa.sin_addr.s_addr;
-
-    registry->size = 1;
+    registry->size = 0;
 
     /* Set connections to NULL */
     for (int i = 0; i < MAX_CONNECTIONS; ++i)
@@ -131,7 +130,7 @@ int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
             continue;
         }
 
-        if(registry->vpn_connection_registry[i]->connection->sin_addr.s_addr == addr)
+        if(registry->vpn_connection_registry[i]->connection->sin_addr.s_addr == (uint32_t) addr)
         {
             gettimeofday(&(registry->vpn_connection_registry[i]->ts), 0);
             return registry->vpn_connection_registry[i]->vip_out;
@@ -152,6 +151,7 @@ int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
  */
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip)
 {
+    /* Replace for loop with instant index look up (vip_out - in_ip - 1 = index) */
     for (int i = 0; i < MAX_CONNECTIONS; ++i)
     {
         if (registry->vpn_connection_registry[i] == NULL)
@@ -159,7 +159,7 @@ struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int 
             continue;
         }
 
-        if(registry->vpn_connection_registry[i]->vip_out == in_ip)
+        if(registry->vpn_connection_registry[i]->vip_out == (uint32_t) in_ip)
         {
             return registry->vpn_connection_registry[i];
         }
