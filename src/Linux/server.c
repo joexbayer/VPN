@@ -65,7 +65,7 @@ void* thread_socket2tun()
         pthread_mutex_unlock(&lock);
 
         if(DEBUG)
-            printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, out_ip);
+            printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
 
         /* Replace source with given out ip address  */
         hdr->saddr = conn->vip_out;

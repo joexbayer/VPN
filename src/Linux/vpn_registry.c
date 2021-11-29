@@ -151,8 +151,20 @@ struct vpn_connection* get_vpn_connection_addr(struct vpn_registry* registry, in
  */
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip)
 {
-    int index = htonl(registry->vpn_ip_raw) - in_ip - 1;
-    return registry->vpn_connection_registry[index];
+    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    {
+        if (registry->vpn_connection_registry[i] == NULL)
+        {
+            continue;
+        }
+
+        if(registry->vpn_connection_registry[i]->connection->vip_out == in_ip)
+        {
+            return registry->vpn_connection_registry[i];
+        }
+    }
+
+    return NULL;
 }
 
 /**
