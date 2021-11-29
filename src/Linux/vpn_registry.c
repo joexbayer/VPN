@@ -82,9 +82,9 @@ inline int free_vpn_registry(struct vpn_registry* reg)
  *
  * Adds a client to a empty registry entry.
  * 
- * returns entry id, MAC_CONNECTIONS if full.
+ * returns connection
  */
-inline int register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection)
+inline struct vpn_connection* register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection)
 {
 
     for (int i = 0; i < MAX_CONNECTIONS; ++i)
@@ -104,11 +104,11 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
             registry->vpn_connection_registry[i] = vpc;
             registry->size++;
 
-            return vpc->vip_out;
+            return vpc;
         }
     }
 
-    return MAX_CONNECTIONS;
+    return NULL;
 
 }
 
@@ -119,9 +119,9 @@ inline int register_connection(struct vpn_registry* registry, uint32_t client_vi
  *
  * Serches for out ip of incomming connection
  * 
- * returns addr or 0
+ * returns connection
  */
-int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
+struct vpn_connection* get_vpn_connection_addr(struct vpn_registry* registry, int addr)
 {
     for (int i = 0; i < MAX_CONNECTIONS; ++i)
     {
@@ -133,11 +133,11 @@ int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
         if(registry->vpn_connection_registry[i]->connection->sin_addr.s_addr == (uint32_t) addr)
         {
             gettimeofday(&(registry->vpn_connection_registry[i]->ts), 0);
-            return registry->vpn_connection_registry[i]->vip_out;
+            return registry->vpn_connection_registry[i];
         }
     }
 
-    return 0;
+    return NULL;
 }
 
 /**
@@ -151,21 +151,8 @@ int get_vpn_connection_addr(struct vpn_registry* registry, int addr)
  */
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip)
 {
-    /* Replace for loop with instant index look up (vip_out - in_ip - 1 = index) */
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
-    {
-        if (registry->vpn_connection_registry[i] == NULL)
-        {
-            continue;
-        }
-
-        if(registry->vpn_connection_registry[i]->vip_out == (uint32_t) in_ip)
-        {
-            return registry->vpn_connection_registry[i];
-        }
-    }
-
-    return NULL;
+    int index = htonl(registry->vpn_ip_raw) - in_ip - 1;
+    return registry->vpn_connection_registry[index];
 }
 
 /**
@@ -192,7 +179,13 @@ int registry_check_timeout(struct vpn_registry* registry)
                 free(registry->vpn_connection_registry[i]);
                 registry->vpn_connection_registry[i] = NULL;
                 registry->size -= 1;
+                continue;
             }
+
+            registry->vpn_connection_registry[i]->data_recv = 0;
+            registry->vpn_connection_registry[i]->data_sent = 0;
+
+
         }
     }
 

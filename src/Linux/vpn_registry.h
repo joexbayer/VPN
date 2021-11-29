@@ -23,6 +23,8 @@ struct vpn_connection
 	uint32_t vip_in;
 	struct sockaddr_in* connection;
     struct timeval ts;
+    uint32_t data_recv;
+    uint32_t data_sent;
 	uint8_t* key;
 
 }__attribute__((packed));
@@ -50,9 +52,8 @@ struct vpn_registry
 struct vpn_registry* create_registry(uint8_t* ip);
 
 int free_vpn_registry(struct vpn_registry* reg);
-int register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection);
-
-int get_vpn_connection_addr(struct vpn_registry* registry, int addr);
+struct vpn_connection* register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection);
+struct vpn_connection* get_vpn_connection_addr(struct vpn_registry* registry, int addr);
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip);
 
 int registry_check_timeout(struct vpn_registry* registry);
