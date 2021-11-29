@@ -158,7 +158,7 @@ struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int 
             continue;
         }
 
-        if(registry->vpn_connection_registry[i]->connection->vip_out == in_ip)
+        if(registry->vpn_connection_registry[i]->vip_out == in_ip)
         {
             return registry->vpn_connection_registry[i];
         }
