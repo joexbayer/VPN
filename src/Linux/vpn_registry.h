@@ -67,8 +67,10 @@ struct vpn_registry
 {
 
 	struct vpn_connection* vpn_connection_registry[MAX_CONNECTIONS];
+    
 	uint8_t* vpn_ip;
 	uint32_t vpn_ip_raw;
+
     uint8_t size;
 
 }__attribute__((packed));
