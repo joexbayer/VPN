@@ -92,10 +92,13 @@ inline struct vpn_connection* register_connection(struct vpn_registry* registry,
         if(registry->vpn_connection_registry[i] == NULL)
         {
             struct vpn_connection* vpc = malloc(sizeof(struct vpn_connection));
+
             struct sockaddr_in* conn = malloc(sizeof(struct sockaddr_in));
             memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
             vpc->connection = conn;
+            vpc->state = CONNECTED;
             vpc->vip_in = client_virtual_ip;
+            /* Assigning clients virtual IP to be base ip + index of connection. */
             vpc->vip_out = htonl(registry->vpn_ip_raw) + (i+1);
 
             if(DEBUG)
@@ -147,24 +150,23 @@ struct vpn_connection* get_vpn_connection_addr(struct vpn_registry* registry, in
  *
  * Searches for out ip of incomming connection
  * 
- * returns addr or 0
+ * returns connection or NULL if not found.
  */
 struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int in_ip)
 {
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
-    {
-        if (registry->vpn_connection_registry[i] == NULL)
-        {
-            continue;
-        }
 
-        if(registry->vpn_connection_registry[i]->vip_out == in_ip)
-        {
-            return registry->vpn_connection_registry[i];
-        }
+    /** 
+     * Because the virtual IP of the client is the base IP + index position.
+     * Means we can get the index by subtracting the base ip from the virtual ip.
+     * This is ALOT faster than then searching through the array.
+     */
+    int index = in_ip - htonl(registry->vpn_ip_raw) - 1;
+    if(index > MAX_CONNECTIONS-1 || index < 0)
+    {
+        return NULL;
     }
 
-    return NULL;
+    return registry->vpn_connection_registry[index];
 }
 
 /**

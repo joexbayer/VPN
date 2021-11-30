@@ -64,6 +64,8 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
+        /* State machine (TODO) */
+
         if(DEBUG)
             printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
 
@@ -123,20 +125,28 @@ void* thread_tun2socket()
     }
 }
 
-int main()
+/**
+ * start_server - Main event loop for server
+ * @network: nework ip with cidr
+ *
+ * Creates and configures everything for VPN
+ * Creates threads and handles main loop
+ * 
+ * returns void
+ */
+void start_server(const char* network)
 {
-
     signal(SIGINT, stop_server);
 
     /* Create a new VPN registry */
-    registry = create_registry((uint8_t*) "10.0.0.1/24");
+    registry = create_registry((uint8_t*) network);
 
     struct sockaddr_in server;
     udp_socket = create_udp_socket(&server);
 
     tun_fd = create_tun_interface();
 
-    int conf = configure_ip_forwarding("10.0.0.1/24");
+    int conf = configure_ip_forwarding(network);
     if(conf < 0)
     {
         printf("[ERROR] Could not configure iptables!\n");
@@ -179,7 +189,11 @@ int main()
         data_in = 0;
         data_out = 0;
     }
+}
 
+int main()
+{
+    start_server("10.0.0.1/24");
     /* code */
     return 0;
 }

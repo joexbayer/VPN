@@ -103,7 +103,7 @@ static void start_threads()
 
 }
 
-int start_vpn_client(char* route, char* server_ip)
+int start_vpn_client(const char* route, const char* server_ip)
 {
 	signal(SIGINT, stop_client);
 
@@ -135,7 +135,6 @@ int start_vpn_client(char* route, char* server_ip)
 	start_threads();
 
 	current_connection = malloc(sizeof(struct vpn_connection));
-
     printf("VPN Client is running...\n");
 
     while(1)
@@ -154,7 +153,7 @@ int main(int argc, char const *argv[])
 {
 	if(argc != 3)
 	{
-		printf("Usage: %d <route> <vpn ip>");
+		printf("Usage: %s <route> <vpn ip>", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 

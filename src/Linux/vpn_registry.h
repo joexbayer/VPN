@@ -4,6 +4,17 @@
 #include "common.h"
 #include "server.h"
 
+/**
+ * ConnectionState enum.
+ * Used to differentiate between the different states a connection be can in.
+ * Especially important for the crypto handshake.
+ */
+enum ConnectionState
+{
+    CONNECTED,
+    DISCONNECTED,
+    ALIVE
+};
 
 /** struct vpn_connection
  * Used to identify a client connected to the VPN.
@@ -11,7 +22,10 @@
  * @vip_out: virtual IP that is used to identify the client on the server virtual network.
  * @vip_in: virtual IP that the client specified when connection.
  * @connection: sockaddr_in that contains clients IP and port.
+ * @state: connection state enum.
  * @ts: timestamp, used to check if connection is dead.
+ * @data_recv: stores how much data client has received
+ * @data_sent: stores how much data client has sent.
  * @key: key used for AES encryption.
  * 
  * Struct is needed to be able to sperate incomming traffic based on client.
@@ -19,12 +33,22 @@
 struct vpn_connection
 {
 
+    /* Config */
 	uint32_t vip_out;
 	uint32_t vip_in;
+
+    /* Connection */
 	struct sockaddr_in* connection;
+    enum ConnectionState state;
+
+    /* Health */
     struct timeval ts;
+
+    /* Stats */
     uint32_t data_recv;
     uint32_t data_sent;
+
+    /* Crypto */
 	uint8_t* key;
 
 }__attribute__((packed));

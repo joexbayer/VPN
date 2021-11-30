@@ -95,7 +95,12 @@ int create_tun_interface()
         exit(1);
     }
     int sys = system("ifconfig tun0 inet 10.0.0.2 10.0.0.255 up");
-
+    if(sys < 0)
+    {
+        printf("Could not configure tun device!\n");
+        exit(EXIT_FAILURE);
+    }
+    
     return fd;   
 }
 
