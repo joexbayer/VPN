@@ -47,7 +47,7 @@ int main(void) {
 
     // char* allocs.
     char* pri_key = malloc(pri_len + 1);
-    char* pri_key = malloc(pub_len + 1);
+    char* pub_key = malloc(pub_len + 1);
 
     // read in BIO
     BIO_read(pri, pri_key, pri_len);
