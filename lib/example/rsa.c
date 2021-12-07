@@ -1,6 +1,7 @@
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
+
 #include <stdio.h>
 #include <string.h>
 
@@ -15,49 +16,44 @@
 #include <sys/select.h> 
 //gcc rsa.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o rsa
 
-#define KEY_LENGTH  2048
-#define PUB_EXP     3
-#define PRINT_KEYS
-#define WRITE_TO_FILE
-
+#define KEY_LENGTH 2048
+#define PUB_EXP 3
 
 int main(void) {
-    size_t pri_len;            // Length of private key
-    size_t pub_len;            // Length of public key
-    char   *pri_key;           // Private key
-    char   *pub_key;           // Public key
-    char   msg[KEY_LENGTH/8];  // Message to encrypt
     char   *encrypt = NULL;    // Encrypted message
     char   *decrypt = NULL;    // Decrypted message
     char   *err;               // Buffer for any error messages
-    RSA    *keypair = NULL;
-    BIGNUM *bne = NULL;
 
-    bne = BN_new();
+    BIGNUM *bne = BN_new();
     int ret = BN_set_word(bne, PUB_EXP);
 
     // Generate key pair
     printf("Generating RSA (%d bits) keypair...", KEY_LENGTH);
     fflush(stdout);
-    keypair = RSA_new();
+
+    // create key
+    RSA *keypair = RSA_new();
     ret = RSA_generate_key_ex(keypair, KEY_LENGTH, bne, NULL);
 
     // To get the C-string PEM form:
     BIO *pri = BIO_new(BIO_s_mem());
     BIO *pub = BIO_new(BIO_s_mem());
-
     PEM_write_bio_RSAPrivateKey(pri, keypair, NULL, NULL, 0, NULL, NULL);
     PEM_write_bio_RSAPublicKey(pub, keypair);
 
-    pri_len = BIO_pending(pri);
-    pub_len = BIO_pending(pub);
+    // key lengths
+    size_t pri_len = BIO_pending(pri);
+    size_t pub_len = BIO_pending(pub);
 
-    pri_key = malloc(pri_len + 1);
-    pub_key = malloc(pub_len + 1);
+    // char* allocs.
+    char* pri_key = malloc(pri_len + 1);
+    char* pri_key = malloc(pub_len + 1);
 
+    // read in BIO
     BIO_read(pri, pri_key, pri_len);
     BIO_read(pub, pub_key, pub_len);
 
+    // add 0 terminator.
     pri_key[pri_len] = '\0';
     pub_key[pub_len] = '\0';
 

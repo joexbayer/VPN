@@ -2,12 +2,18 @@ VFLAGS = --track-origins=yes --leak-check=full --show-leak-kinds=all
 CFLAGS = -std=gnu11 -g -Wall -Wextra -O2
 
 all: build-mac
+
+rsa: build-rsa-example
 	
 build-mac: src/MacOS/*.c
 	gcc src/MacOS/*.c -pthread $(CFLAGS) -o client.out
 
 build-linux: src/Linux/*.c
 	gcc src/Linux/*.c -pthread $(CFLAGS) -o server.out
+
+build-rsa-example:
+	gcc lib/example/rsa.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o rsa_server.out
+	gcc lib/example/rsa_c.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o rsa_client.out
 
 client: build-mac
 	sudo ./client.out default 18.192.21.126

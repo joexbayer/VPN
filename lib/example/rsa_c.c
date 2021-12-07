@@ -17,7 +17,7 @@
 
 int main(int argc, char *argv[])
 {
-	int sockfd = 0, n = 0;
+	int sockfd = 0;
 	char recvBuff[1024];
 	struct sockaddr_in serv_addr;
 
@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 
 	memset(recvBuff, '0',sizeof(recvBuff));
 
-	/* a socket is created through call to socket() function */
 	if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		printf("\n Error : Could not create socket \n");
@@ -47,43 +46,29 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	/* Information like IP address of the remote host and its port is
-	 * bundled up in a structure and a call to function connect() is made
-	 * which tries to connect this socket with the socket (IP address and port)
-	 * of the remote host
-	 */
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
 		printf("\n Error : Connect Failed \n");
 		return 1;
 	}
 
-	/* Once the sockets are connected, the server sends the data (date+time)
-	 * on clients socket through clients socket descriptor and client can read it
-	 * through normal read call on the its socket descriptor.
-	 */
-	n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
+
+	/* Encryption starts here */
+	int n = read(sockfd, recvBuff, sizeof(recvBuff)-1);
+
 	const char *p = recvBuff;
-
-	BIO *bufio;
-	RSA *rsa;
-
-	bufio = BIO_new_mem_buf((void*)p, n);
+	BIO *bufio = BIO_new_mem_buf((void*)p, n);
 	RSA *myRSA = PEM_read_bio_RSAPublicKey(bufio, 0, 0, 0);
 
 	char* test = "Joebayer test";
 
     char* encrypt = malloc(RSA_size(myRSA));
-    int encrypt_len;
-
-    char *err = malloc(130);
-    encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
+    int encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
 
     int rc = send(sockfd , encrypt ,encrypt_len, 0 );
-
-	if(n < 0)
+	if(rc < 0)
 	{
-		printf("\n Read error \n");
+		printf("\n send error \n");
 	}
 
 	return 0;
