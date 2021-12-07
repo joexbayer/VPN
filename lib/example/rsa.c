@@ -57,9 +57,7 @@ int main(void) {
     pri_key[pri_len] = '\0';
     pub_key[pub_len] = '\0';
 
-    #ifdef PRINT_KEYS
-        printf("\n%s\n%s\n", pri_key, pub_key);
-    #endif
+    printf("\n%s\n%s\n", pri_key, pub_key);
     printf("done.\n");
 
 
