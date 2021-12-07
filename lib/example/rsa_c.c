@@ -11,7 +11,7 @@
 
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
-//#include <openssl/err.h>
+#include <openssl/err.h>
 
 //gcc rsa_c.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o rsa_c
 
