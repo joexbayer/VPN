@@ -51,7 +51,7 @@ struct vpn_connection
     /* Crypto */
 	uint8_t* key;
 
-}__attribute__((packed));
+};
 
 
 /** struct vpn_registry
