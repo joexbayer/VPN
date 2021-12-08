@@ -77,10 +77,11 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 		printf("[ERROR] Could not save current gateway!\n");
 		exit(EXIT_FAILURE);
 	}
-	/* Delete default route and add new. */
-	int sys = system("route delete default");
 
-	char cmd [1000] = {0x0};
+    /* Delete route and add new. */
+    char cmd [1000] = {0x0};
+    sprintf(cmd,"route delete %s", route);
+	int sys = system(cmd);
 
     #ifdef __APPLE__
     sprintf(cmd,"route add %s 10.0.0.255", route);
