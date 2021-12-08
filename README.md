@@ -16,7 +16,7 @@ make build-client
 ./client.out <route> <ip of vpn server>
 ```
 
-### Server Currently only Linux support
+### Server (Only Linux support)
 ```bash
 make build-server
 ./server.out
