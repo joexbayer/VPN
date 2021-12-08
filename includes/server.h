@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H value
 
-#include "common.h"
+#include "../../includes/common.h"
 
 #define MAX_CONNECTIONS 255
 

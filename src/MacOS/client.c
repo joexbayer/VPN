@@ -1,11 +1,6 @@
-#include "client.h"
+#include "../../includes/client.h"
 
 static pthread_t tid[2];
-// TODO, MOVE TO CONNECTION STRUCT
-static struct sockaddr_in server_addr;
-static int udp_socket;
-static int tun_fd;
-
 static struct vpn_connection* current_connection;
 
 /**
@@ -20,7 +15,7 @@ void stop_client()
 {
 	restore_gateway();
 	printf("\nStopped.\n");
-	close(udp_socket);
+	close(current_connection->udp_socket);
 	exit(EXIT_SUCCESS);
 }
 
@@ -38,13 +33,13 @@ void* thread_socket2tun()
 	char* buffer[2555] = {0};
 	while(1)
 	{
-        int rc = read(udp_socket, buffer, 2555);
+        int rc = read(current_connection->udp_socket, buffer, 2555);
         if(rc <= 0)
         {
         	continue;
         }
         current_connection->data_sent += rc;
-        rc = write(tun_fd, buffer, rc);
+        rc = write(current_connection->tun_fd, buffer, rc);
 	}
 }
 
@@ -62,13 +57,13 @@ void* thread_tun2socket()
 	char* buffer[2555] = {0};
 	while(1)
 	{
-        int rc = read(tun_fd, buffer, 2555);
+        int rc = read(current_connection->tun_fd, buffer, 2555);
         if(rc <= 0)
         {
         	continue;
         }
         current_connection->data_recv += rc;
-        rc = sendto(udp_socket, buffer, rc, 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        rc = sendto(current_connection->udp_socket, buffer, rc, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 	}
 }
 
@@ -107,17 +102,19 @@ int start_vpn_client(const char* route, const char* server_ip)
 {
 	signal(SIGINT, stop_client);
 
+	current_connection = malloc(sizeof(struct vpn_connection));
+
 	/* Create UDP socket. */
-	udp_socket = create_udp_socket(&server_addr,(uint8_t*) server_ip);
-	if(udp_socket <= 0)
+	current_connection->udp_socket = create_udp_socket(&(current_connection->server_addr),(uint8_t*) server_ip);
+	if(current_connection->udp_socket <= 0)
 	{
 		printf("[ERROR] Could not create UDP socket.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	/* Create TUN interface. */
-	tun_fd = create_tun_interface();
-	if(tun_fd <= 0)
+	current_connection->tun_fd = create_tun_interface();
+	if(current_connection->tun_fd <= 0)
 	{
 		printf("[ERROR] Could not create TUN device.\n");
 		exit(EXIT_FAILURE);
@@ -134,7 +131,7 @@ int start_vpn_client(const char* route, const char* server_ip)
 	/* Start socket / TUN threads */
 	start_threads();
 
-	current_connection = malloc(sizeof(struct vpn_connection));
+	
     printf("VPN Client is running...\n");
 
     while(1)

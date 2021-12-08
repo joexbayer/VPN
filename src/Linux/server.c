@@ -1,24 +1,21 @@
-#include "server.h"
-#include "vpn_registry.h"
-#include "vpn_config.h"
+#include "../../includes/server.h"
+#include "../../includes/vpn_registry.h"
+#include "../../includes/vpn_config.h"
 
 #define DEBUG 0
 
+/* Threads */
 pthread_t tid[2];
-static int udp_socket;
-static int tun_fd;
 pthread_mutex_t lock;
-struct vpn_registry* registry;
 
-static uint64_t data_in;
-static uint64_t data_out;
+struct vpn_registry* registry;
 
 void stop_server()
 {
     printf("\nStopped.\n");
     free_vpn_registry(registry);
     pthread_mutex_destroy(&lock);
-    close(udp_socket);
+    close(registry->udp_socket);
     exit(EXIT_SUCCESS);
 
 }
@@ -40,7 +37,7 @@ void* thread_socket2tun()
 
     while(1)
     {
-        int rc = recvfrom(udp_socket, buffer, 2555, 0, (struct sockaddr*)&client_addr,(socklen_t*) &client_struct_length);
+        int rc = recvfrom(registry->udp_socket, buffer, 2555, 0, (struct sockaddr*)&client_addr,(socklen_t*) &client_struct_length);
         if(rc <= 0)
         {
             continue;
@@ -64,7 +61,6 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
-        /* State machine (TODO) */
 
         if(DEBUG)
             printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
@@ -74,8 +70,8 @@ void* thread_socket2tun()
         hdr->saddr = htonl(hdr->saddr);
 
         conn->data_sent += rc;
-        data_out += rc;
-        rc = write(tun_fd, buffer, rc);
+        registry->data_out += rc;
+        rc = write(registry->tun_fd, buffer, rc);
     }
 }
 
@@ -94,7 +90,7 @@ void* thread_tun2socket()
     int client_struct_length = sizeof(client_addr);
     while(1)
     {
-        int rc = read(tun_fd, buffer, 2555);
+        int rc = read(registry->tun_fd, buffer, 2555);
         if(rc <= 0)
         {
             continue;
@@ -120,8 +116,8 @@ void* thread_tun2socket()
             printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
 
         conn->data_recv += rc;
-        data_in += rc;
-        rc = sendto(udp_socket, buffer, rc, 0, (struct sockaddr*)conn->connection, client_struct_length);
+        registry->data_in += rc;
+        rc = sendto(registry->udp_socket, buffer, rc, 0, (struct sockaddr*)conn->connection, client_struct_length);
     }
 }
 
@@ -142,9 +138,8 @@ void start_server(const char* network)
     registry = create_registry((uint8_t*) network);
 
     struct sockaddr_in server;
-    udp_socket = create_udp_socket(&server);
-
-    tun_fd = create_tun_interface();
+    registry->udp_socket = create_udp_socket(&server);
+    registry->tun_fd = create_tun_interface();
 
     int conf = configure_ip_forwarding(network);
     if(conf < 0)
@@ -153,13 +148,12 @@ void start_server(const char* network)
         exit(EXIT_FAILURE);
     }
 
-
+    /* init lock for threads */
     if (pthread_mutex_init(&lock, NULL) != 0)
     {
         printf("\n mutex init failed\n");
         return 1;
     }
-
 
     /* Create thread for incomming client packets */
     int err;
@@ -186,8 +180,8 @@ void start_server(const char* network)
         registry_check_timeout(registry);
         pthread_mutex_unlock(&lock);
 
-        data_in = 0;
-        data_out = 0;
+        registry->data_in = 0;
+        registry->data_out = 0;
     }
 }
 

@@ -1,5 +1,6 @@
-#include "vpn_registry.h"
-#include "server.h"
+#include "../../includes/vpn_registry.h"
+#include "../../includes/server.h"
+#include <math.h>
 
 
 #define DEBUG 0
@@ -24,6 +25,12 @@ struct vpn_registry* create_registry(uint8_t* ip)
     memcpy((char*)registry->vpn_ip, (char*)ip, strlen((char*)ip)-3);
     registry->vpn_ip[strlen((char*) ip)-2] = 0;
 
+    /* Allocate space for hosts */
+    char* hosts_str = strchr((char*) ip, '/');
+    registry->hosts = pow(2, 32-atoi(hosts_str+1));
+    registry->vpn_connection_registry = malloc(registry->hosts * sizeof(struct vpn_connection*));
+
+    /* IP char* to int */
     struct sockaddr_in sa;
     inet_pton(AF_INET, (char *)registry->vpn_ip, &sa.sin_addr);
 
@@ -56,7 +63,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 inline int free_vpn_registry(struct vpn_registry* reg)
 {
 
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    for (int i = 0; i < registry->hosts; ++i)
     {
         if(reg->vpn_connection_registry[i] == NULL)
         {
@@ -67,6 +74,7 @@ inline int free_vpn_registry(struct vpn_registry* reg)
     }
 
     free(reg->vpn_ip);
+    free(reg->vpn_connection_registry);
     free(reg);
 
     printf("VPN registry successfully removed.\n");
@@ -87,7 +95,7 @@ inline int free_vpn_registry(struct vpn_registry* reg)
 inline struct vpn_connection* register_connection(struct vpn_registry* registry, uint32_t client_virtual_ip, struct sockaddr_in new_connection)
 {
 
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    for (int i = 0; i < registry->hosts; ++i)
     {
         if(registry->vpn_connection_registry[i] == NULL)
         {
@@ -126,7 +134,7 @@ inline struct vpn_connection* register_connection(struct vpn_registry* registry,
  */
 struct vpn_connection* get_vpn_connection_addr(struct vpn_registry* registry, int addr)
 {
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    for (int i = 0; i < registry->hosts; ++i)
     {
         if (registry->vpn_connection_registry[i] == NULL)
         {
@@ -161,7 +169,7 @@ struct vpn_connection* get_vpn_connection_ip(struct vpn_registry* registry, int 
      * This is ALOT faster than then searching through the array.
      */
     int index = in_ip - htonl(registry->vpn_ip_raw) - 1;
-    if(index > MAX_CONNECTIONS-1 || index < 0)
+    if(index > registry->hosts-1 || index < 0)
     {
         return NULL;
     }
@@ -182,7 +190,7 @@ int registry_check_timeout(struct vpn_registry* registry)
     struct timeval now;
     gettimeofday(&now, 0);
 
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    for (int i = 0; i < registry->hosts; ++i)
     {
         if (registry->vpn_connection_registry[i] != NULL)
         {

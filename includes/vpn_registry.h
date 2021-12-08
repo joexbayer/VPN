@@ -1,7 +1,7 @@
 #ifndef VPN_REGISTRY_H
 #define VPN_REGISTRY_H value
 
-#include "common.h"
+#include "../../includes/common.h"
 #include "server.h"
 
 /**
@@ -61,15 +61,30 @@ struct vpn_connection
  * @vpn_ip: virtual IP range that the registry assigned.
  * @vpn_ip_raw: the uint32 version of the vpn_ip.
  * 
+ * @udp_socket: udp socket to receive data from client.
+ * @tun_fd: virtual tun device
+ * 
+ * @data_in: total data received.
+ * @data_out: total data sent
+ * 
+ * @size: total amount of users.
+ * 
  * Struct is needed to correlate connections to an ip range.
  */
 struct vpn_registry
 {
 
-	struct vpn_connection* vpn_connection_registry[MAX_CONNECTIONS];
+	struct vpn_connection** vpn_connection_registry;
     
 	uint8_t* vpn_ip;
 	uint32_t vpn_ip_raw;
+    uint32_t hosts;
+
+    int udp_socket;
+    int tun_fd;
+
+    uint64_t data_in;
+    uint64_t data_out;
 
     uint8_t size;
 

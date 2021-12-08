@@ -7,13 +7,18 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-#include <netinet/ip.h>
-#include <net/if.h>
 #include <pthread.h>
 #include <signal.h>
-#include <fcntl.h>
-#include <sys/ioctl.h> // ioctl
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+
+#ifdef __linux__
+#include <linux/if.h>
+#include <linux/if_tun.h>
+#endif
+
 
 struct ip_hdr {
     uint8_t ihl : 4;

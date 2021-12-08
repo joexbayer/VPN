@@ -1,4 +1,4 @@
-#include "vpn_config.h"
+#include "../includes/vpn_config.h"
 
 static char* gateway;
 /**
@@ -89,7 +89,10 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
  */
 int create_tun_interface()
 {
-	int fd;
+    int fd = -1;
+
+    #ifdef __APPLE__
+
     if( (fd = open("/dev/tun0", O_RDWR)) < 0 ) {
         perror("Cannot open tun0 dev\n");
         exit(1);
@@ -99,9 +102,35 @@ int create_tun_interface()
     {
         printf("Could not configure tun device!\n");
         exit(EXIT_FAILURE);
+    }  
+    #endif
+
+    #ifdef __linux__
+
+    struct ifreq ifr;
+    int err;
+
+    if( (fd = open("/dev/net/tun", O_RDWR)) == -1 ) {
+           perror("open /dev/net/tun");
+           exit(1);
     }
-    
-    return fd;   
+
+    char* devname = "tun0";
+    memset(&ifr, 0, sizeof(ifr));
+    ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+    strncpy(ifr.ifr_name, devname, IFNAMSIZ); // devname = "tun0" or "tun1", etc
+
+    /* ioctl will use ifr.if_name as the name of TUN
+         * interface to open: "tun0", etc. */
+    if ( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) == -1 ) {
+        perror("ioctl TUNSETIFF");
+        close(fd);
+        exit(1);
+    }
+
+    #endif
+
+    return fd; 
 }
 
 /**
@@ -124,8 +153,53 @@ int create_udp_socket(struct sockaddr_in* server_addr, uint8_t* server_ip)
 
     server_addr->sin_family = AF_INET;
     server_addr->sin_port = htons(VPN_PORT);
-    server_addr->sin_addr.s_addr = inet_addr((char*) server_ip);
+
+    /* If server_ip is not INADDR_ANY then assign and return.    */
+    if(server_ip != 0){
+        server_addr->sin_addr.s_addr = inet_addr((char*) server_ip);
+        return sockfd;
+    }
+    server_addr->sin_addr.s_addr = INADDR_ANY;
+
+    int reuse = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0){
+        perror("setsockopt(SO_REUSEADDR) failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if(bind(sockfd, (struct sockaddr*)server_addr, sizeof(*server_addr)) < 0){
+        printf("Couldn't bind to the port\n");
+        exit(EXIT_FAILURE);
+    }
 
     return sockfd;
+}
 
+/**
+ * configure_ip_forwarding - Configures IP
+ * @virtual_subnet: ip of the virtual subnut
+ *
+ * Uses ifconfig to assign IP to tun device.
+ * Uses iptables to enable ip forwarding
+ * and creates MASQUERADE for outgoing traffic.
+ * 
+ * returns value of system command.
+ */
+int configure_ip_forwarding(char* virtual_subnet)
+{
+    char cmd [1000] = {0x0};
+    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
+    int sys = system(cmd);
+    sys = system("sysctl -w net.ipv4.ip_forward=1");
+
+    sprintf(cmd,"iptables -t nat -A POSTROUTING -s %s ! -d %s -m comment --comment 'vpn' -j MASQUERADE", virtual_subnet, virtual_subnet);
+    sys = system(cmd);
+
+    sprintf(cmd,"iptables -A FORWARD -s %s -m state --state RELATED,ESTABLISHED -j ACCEPT", virtual_subnet);
+    sys = system(cmd);
+
+    sprintf(cmd,"iptables -A FORWARD -d %s -j ACCEPT", virtual_subnet);
+    sys = system(cmd);
+
+    return sys;
 }

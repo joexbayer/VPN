@@ -88,19 +88,8 @@ int create_udp_socket(struct sockaddr_in* server_addr)
     }
 
     server_addr->sin_family = AF_INET;
-    server_addr->sin_port = htons(2000);
+    server_addr->sin_port = htons(VPN_PORT);
     server_addr->sin_addr.s_addr = INADDR_ANY;
-
-    int reuse = 1;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0){
-        perror("setsockopt(SO_REUSEADDR) failed");
-        exit(EXIT_FAILURE);
-    }
-
-    if(bind(sockfd, (struct sockaddr*)server_addr, sizeof(*server_addr)) < 0){
-        printf("Couldn't bind to the port\n");
-        exit(EXIT_FAILURE);
-    }
 
     return sockfd;
 }
