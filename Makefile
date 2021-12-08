@@ -6,7 +6,7 @@ all: build-mac
 rsa: build-rsa-example
 	
 build-mac: src/MacOS/*.c src/vpn_config.c src/vpn_registry.c
-	gcc src/MacOS/*.c src/vpn_config.c src/vpn_registry.c -pthread $(CFLAGS) -o client.out
+	gcc src/MacOS/*.c src/vpn_config.c src/vpn_registry.c -pthread $(CFLAGS) -lm -o client.out
 
 build-linux: src/Linux/*.c src/vpn_config.c src/vpn_registry.c
 	gcc src/Linux/*.c src/vpn_config.c src/vpn_registry.c -pthread $(CFLAGS) -lm -o server.out
