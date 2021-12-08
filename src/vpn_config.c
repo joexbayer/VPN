@@ -93,7 +93,14 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
     sys = system(cmd);
 
 	/* Add rule to allow traffic to vpn server */
+    #ifdef __APPLE__
+    sprintf(cmd,"route add %s %s", server_ip, gateway);
+    #endif
+
+    #ifdef __linux__
     sprintf(cmd,"ip route add %s via %s", server_ip, gateway);
+    #endif
+
     sys = system(cmd);
 
     return sys;
