@@ -87,7 +87,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
     #endif
 
     #ifdef __linux__
-    sprintf(cmd,"ip route add %s via 10.0.0.255", route);
+    sprintf(cmd,"ip route add %s via 10.0.0.1", route);
     #endif
 
     sys = system(cmd);
