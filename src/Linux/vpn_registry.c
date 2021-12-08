@@ -46,7 +46,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
         registry->vpn_connection_registry[i] = NULL;
     }
 
-    printf("VPN registry successfully created!\n");
+    printf("VPN registry successfully created with subnet %s with %d hosts.\n", registry->vpn_ip, registry->hosts);
 
     return registry;
 }
