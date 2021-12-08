@@ -1,5 +1,4 @@
-#include "../../includes/vpn_registry.h"
-#include "../../includes/server.h"
+#include "../includes/vpn_registry.h"
 #include <math.h>
 
 
