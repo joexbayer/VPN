@@ -1,7 +1,7 @@
 #ifndef VPN_REGISTRY_H
 #define VPN_REGISTRY_H value
 
-#include "../../includes/common.h"
+#include "common.h"
 #include "server.h"
 
 /**
