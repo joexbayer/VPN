@@ -12,7 +12,14 @@ static char* gateway;
 int restore_gateway()
 {
 	char cmd [1000] = {0x0};
+    #ifdef __APPLE__
     sprintf(cmd,"route add default %s", gateway);
+    #endif
+
+    #ifdef __linux__
+    sprintf(cmd,"ip route add default via %s", gateway);
+    #endif
+
     int sys = system("route delete default");
     sys = system(cmd);
 
@@ -31,7 +38,14 @@ int restore_gateway()
 static int save_current_gateway()
 {
 	char cmd [1000] = {0x0};
-    sprintf(cmd,"route -n get default | grep gateway | cut -d ':' -f 2 | awk '{$1=$1};1'"); // iOS specific!
+
+    #ifdef __APPLE__
+    sprintf(cmd,"route -n get default | grep gateway | cut -d ':' -f 2 | awk '{$1=$1};1'");
+    #endif
+    #ifdef __linux__
+    sprintf(cmd,"/sbin/ip route | awk '/default/ { print $3 }'");
+    #endif
+
     FILE* fp = popen(cmd, "r");
     char line[256]={0x0};
 
@@ -67,11 +81,19 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 	int sys = system("route delete default");
 
 	char cmd [1000] = {0x0};
+
+    #ifdef __APPLE__
     sprintf(cmd,"route add %s 10.0.0.255", route);
+    #endif
+
+    #ifdef __linux__
+    sprintf(cmd,"ip route add %s via 10.0.0.255", route);
+    #endif
+
     sys = system(cmd);
 
 	/* Add rule to allow traffic to vpn server */
-    sprintf(cmd,"route add %s %s", server_ip, gateway);
+    sprintf(cmd,"ip route add %s via %s", server_ip, gateway);
     sys = system(cmd);
 
     return sys;
@@ -127,6 +149,10 @@ int create_tun_interface()
         close(fd);
         exit(1);
     }
+
+    char cmd [1000] = {0x0};
+    sprintf(cmd,"ifconfig tun0 %s up", "10.0.0.1/24");
+    int sys = system(cmd);
 
     #endif
 
@@ -188,9 +214,7 @@ int create_udp_socket(struct sockaddr_in* server_addr, uint8_t* server_ip)
 int configure_ip_forwarding(char* virtual_subnet)
 {
     char cmd [1000] = {0x0};
-    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
-    int sys = system(cmd);
-    sys = system("sysctl -w net.ipv4.ip_forward=1");
+    int sys = system("sysctl -w net.ipv4.ip_forward=1");
 
     sprintf(cmd,"iptables -t nat -A POSTROUTING -s %s ! -d %s -m comment --comment 'vpn' -j MASQUERADE", virtual_subnet, virtual_subnet);
     sys = system(cmd);
