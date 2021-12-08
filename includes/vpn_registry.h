@@ -78,7 +78,7 @@ struct vpn_registry
     
 	uint8_t* vpn_ip;
 	uint32_t vpn_ip_raw;
-    uint32_t hosts;
+    int hosts;
 
     int udp_socket;
     int tun_fd;

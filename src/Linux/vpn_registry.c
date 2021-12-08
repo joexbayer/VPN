@@ -63,7 +63,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 inline int free_vpn_registry(struct vpn_registry* reg)
 {
 
-    for (int i = 0; i < registry->hosts; ++i)
+    for (int i = 0; i < reg->hosts; ++i)
     {
         if(reg->vpn_connection_registry[i] == NULL)
         {
