@@ -8,7 +8,7 @@ rsa: build-rsa-example
 build-mac: src/MacOS/*.c src/vpn_config.c
 	gcc src/MacOS/*.c src/vpn_config.c -pthread $(CFLAGS) -o client.out
 
-build-linux: src/Linux/*.c
+build-linux: src/Linux/*.c src/vpn_config.c
 	gcc src/Linux/*.c -pthread $(CFLAGS) -o server.out
 
 build-rsa-example:
