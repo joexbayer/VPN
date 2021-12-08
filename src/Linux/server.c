@@ -139,7 +139,7 @@ void start_server(const char* network)
 
     struct sockaddr_in server;
     registry->udp_socket = create_udp_socket(&server, 0);
-    registry->tun_fd = create_tun_interface();
+    registry->tun_fd = create_tun_interface(network);
 
     int conf = configure_ip_forwarding(network);
     if(conf < 0)

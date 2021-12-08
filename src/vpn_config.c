@@ -101,7 +101,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 
 /**
  * create_tun_interface - Opens a tun device.
- * @void:
+ * @virtual_subnet: subet for ifconfig (needed for linux.)
  *
  * Creates and opens tun0 interface device.
  * Also configurates the tun0 device to point
@@ -109,7 +109,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
  * 
  * returns fd of device or -1 on error.
  */
-int create_tun_interface()
+int create_tun_interface(char* virtual_subnet)
 {
     int fd = -1;
 
@@ -151,8 +151,13 @@ int create_tun_interface()
     }
 
     char cmd [1000] = {0x0};
-    sprintf(cmd,"ifconfig tun0 %s up", "10.0.0.1/24");
+    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
     int sys = system(cmd);
+    if(sys < 0)
+    {
+        printf("Could not activate tun device!\n");
+        exit(EXIT_FAILURE);
+    }
 
     #endif
 
