@@ -26,7 +26,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 
     /* Allocate space for hosts */
     char* hosts_str = strchr((char*) ip, '/');
-    registry->hosts = pow(2, 32-atoi(hosts_str+1))-1;
+    registry->hosts = pow(2, 32-atoi(hosts_str+1))-1; /* Use 2^(32-x) to calculate amount of hosts in network. */
     registry->vpn_connection_registry = malloc(registry->hosts * sizeof(struct vpn_connection*));
 
     /* IP char* to int */
