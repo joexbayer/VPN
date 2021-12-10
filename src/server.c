@@ -75,14 +75,15 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
 
             /* Decrypt */
             unsigned char decryptedtext[20000];
-            unsigned char* tag = (unsigned char*) buffer;
+            unsigned char* tag = malloc(16);
+            memcpy(tag, buffer, 16);
 
             int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
             if(decrypted_len < 0)
             {
                 /* Verify error */
                 printf("Decrypted text failed to verify\n");
-                break;
+                continue;
             }
 
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;

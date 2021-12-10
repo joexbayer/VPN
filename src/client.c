@@ -41,9 +41,10 @@ void* thread_socket2tun()
         	continue;
         }
 
-        /* Decrypt */
+         /* Decrypt */
         unsigned char decryptedtext[20000];
-        unsigned char* tag = (unsigned char*) buffer;
+        unsigned char* tag = malloc(16);
+        memcpy(tag, buffer, 16);
 
         int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)
@@ -55,6 +56,7 @@ void* thread_socket2tun()
 
         current_connection->data_sent += decrypted_len;
         rc = write(current_connection->tun_fd, decryptedtext, decrypted_len);
+        free(tag);
 	}
 }
 
