@@ -105,8 +105,8 @@ static void handshake()
 	char* syn = "connect";
 	int rc = sendto(current_connection->udp_socket, syn, strlen(syn), 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 
-	char* buffer[8046] = {0};
-    rc = read(current_connection->udp_socket, buffer, 8046);
+	char buffer[1024];
+    rc = read(current_connection->udp_socket, buffer, sizeof(buffer)-1);
     if(rc <= 0)
     {
     	printf("Could not read public key\n");
@@ -120,12 +120,11 @@ static void handshake()
 
 	char* test = "Joebayer";
 
-    char* encrypt = malloc(RSA_size(current_connection->myRSA));
-    int encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, current_connection->myRSA, RSA_PKCS1_OAEP_PADDING);
+	struct crypto_message* msg = vpn_encrypt(test, strlen(test), current_connection->myRSA);
 
-   	printf("%d\n", encrypt_len);
+   	printf("%d\n", msg->size);
 
-	rc = sendto(current_connection->udp_socket, encrypt, encrypt_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+	rc = sendto(current_connection->udp_socket, msg->buffer, msg->size, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 
 	rc = read(current_connection->udp_socket, buffer, 100);
    	if(rc <= 0)
