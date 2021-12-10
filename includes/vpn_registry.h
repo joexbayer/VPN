@@ -51,6 +51,7 @@ struct vpn_connection
 
     /* Crypto */
 	uint8_t* key;
+    uint32_t key_length;
 
 };
 

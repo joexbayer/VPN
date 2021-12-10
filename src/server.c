@@ -54,6 +54,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
             conn->key = malloc(msg->size+1);
             memcpy(conn->key, msg->buffer, msg->size);
             conn->key[msg->size+1] = 0;
+            conn->key_length = msg->size;
 
             conn->state = ALIVE;
             if(DEBUG)
@@ -68,19 +69,31 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
 
         case ALIVE:
             ;
-            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+
+            /* Decrypt */
+            unsigned char decryptedtext[20000];
+            unsigned char tag[16];
+
+            int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, conn->key, IV, decryptedtext);
+            if(decrypted_len < 0)
+            {
+                /* Verify error */
+                printf("Decrypted text failed to verify\n");
+                continue;
+            }
+            struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
 
             if(DEBUG)
-                printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
+                printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", decrypted_len, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
 
             /* Replace source with given out ip address  */
             hdr->saddr = conn->vip_out;
             hdr->saddr = htonl(hdr->saddr);
 
-            conn->data_sent += rc;
-            registry->data_out += rc;
-            rc = write(registry->tun_fd, buffer, rc);
+            conn->data_sent += decrypted_len;
+            registry->data_out += decrypted_len;
+            rc = write(registry->tun_fd, decryptedtext, decrypted_len);
             break;
     }
 }
@@ -109,24 +122,12 @@ void* thread_socket2tun()
             continue;
         }
 
-        /* Decrypt */
-        unsigned char decryptedtext[20000];
-        unsigned char tag[16];
-
-        int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, key, IV, decryptedtext);
-        if(decrypted_len < 0)
-        {
-            /* Verify error */
-            printf("Decrypted text failed to verify\n");
-            continue;
-        }
-
         /* look for connection in registry. */
         pthread_mutex_lock(&lock);
         struct vpn_connection* conn = get_vpn_connection_addr(registry, client_addr.sin_addr.s_addr);
         if(conn == NULL)
         {
-            struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
+            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
             hdr->saddr = ntohl(hdr->saddr);
 
             conn = register_connection(registry, hdr->saddr, client_addr);
@@ -139,7 +140,7 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
-        handle_vpn_connection(conn, decryptedtext, decrypted_len);
+        handle_vpn_connection(conn, buffer, rc);
         
     }
 }
