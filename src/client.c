@@ -3,7 +3,8 @@
 static pthread_t tid[2];
 static struct vpn_connection* current_connection;
 
-static const unsigned char key[] = "01234567890123456789012345678901";
+//static const unsigned char key[] = "01234567890123456789012345678901";
+static const unsigned char key[32];
 
 /**
  * stop_client - Signal function
@@ -124,6 +125,18 @@ static void start_threads()
 		exit(EXIT_FAILURE);
     }
 
+}
+
+static inline void key_init()
+{
+	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	for (int i = 0; i < 32; ++i)
+	{
+		int key_index = rand() % (int) (sizeof(charset - 1));
+		key[key_index] = charset[key_index]
+	}
+
+	printf("%s\n", key);
 }
 
 /** handshake
