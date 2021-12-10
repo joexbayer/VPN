@@ -2,7 +2,7 @@ VFLAGS = --track-origins=yes --leak-check=full --show-leak-kinds=all
 CFLAGS = -std=gnu11 -g -Wall -Wextra -O2
 
 COMMON = src/vpn_config.c src/vpn_registry.c lib/crypto.c
-CRYPTO_FLAGS = -lm -o -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto
+CRYPTO_FLAGS = -lm -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto
 
 all: build-client
 
