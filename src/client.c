@@ -47,11 +47,11 @@ void* thread_socket2tun()
 
         int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)
-	    {
-	        /* Verify error */
-	        printf("Decrypted text failed to verify\n");
-	        continue;
-	    }
+        {
+            /* Verify error */
+            printf("Decrypted text failed to verify\n");
+            continue;
+        }
 
         current_connection->data_sent += decrypted_len;
         rc = write(current_connection->tun_fd, decryptedtext, decrypted_len);

@@ -195,13 +195,14 @@ void* thread_tun2socket()
         unsigned char tag[16];
         int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
 
-        char* encrypt_tag = malloc(cipher_len+16);
+        unsigned char* encrypt_tag = malloc(cipher_len+16);
         memcpy(encrypt_tag, tag, 16);
         memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
         conn->data_recv += cipher_len;
         registry->data_in += cipher_len;
         rc = sendto(registry->udp_socket, encrypt_tag, cipher_len+16, 0, (struct sockaddr*)conn->connection, client_struct_length);
+        free(encrypt_tag);
     }
 }
 
