@@ -46,7 +46,7 @@ void* thread_socket2tun()
         unsigned char tag[16];
 
         int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, key, IV, decryptedtext);
-        if(decryptedtext_len < 0)
+        if(decrypted_len < 0)
 	    {
 	        /* Verify error */
 	        printf("Decrypted text failed to verify\n");
