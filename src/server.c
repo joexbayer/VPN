@@ -75,7 +75,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
 
             /* Decrypt */
             unsigned char decryptedtext[20000];
-            unsigned char* tag = (unsigned char*) buffer;;
+            unsigned char* tag = (unsigned char*) buffer;
 
             int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
             if(decrypted_len < 0)
