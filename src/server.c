@@ -82,6 +82,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
                 printf("Decrypted text failed to verify\n");
                 break;
             }
+            
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
 

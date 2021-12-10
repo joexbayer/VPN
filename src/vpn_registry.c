@@ -113,7 +113,7 @@ inline struct vpn_connection* register_connection(struct vpn_registry* registry,
             vpc->vip_out = htonl(registry->vpn_ip_raw) + (i+1);
 
             if(DEBUG)
-                printf("Assigned new ip: %d, from %d + %d\n",vpc->vip_out,  registry->vpn_ip_raw, registry->size);
+                printf("Assigned new ip: %d, from %d + %d\n",vpc->vip_out,  registry->vpn_ip_raw, i+1);
 
             registry->vpn_connection_registry[i] = vpc;
             registry->size++;
