@@ -82,17 +82,6 @@ void* thread_tun2socket()
         unsigned char ciphertext[20000];
         unsigned char tag[16];
         int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
-        printf("%d\n", cipher_len);
-        unsigned char decryptedtext[20000];
-        unsigned char tag[16];
-
-        int decrypted_len = vpn_aes_decrypt(ciphertext, cipher_len, aad, strlen(aad), tag, key, IV, decryptedtext);
-        if(decrypted_len < 0)
-	    {
-	        /* Verify error */
-	        printf("Decrypted text failed to verify\n");
-	        continue;
-	    }
 
         current_connection->data_recv += cipher_len;
         rc = sendto(current_connection->udp_socket, ciphertext, cipher_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));

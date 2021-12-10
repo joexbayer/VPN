@@ -6,6 +6,8 @@
 pthread_t tid[2];
 pthread_mutex_t lock;
 
+static const unsigned char key[] = "01234567890123456789012345678901";
+
 struct vpn_registry* registry;
 struct crypto_instance* crypto;
 
@@ -75,14 +77,14 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
             unsigned char decryptedtext[20000];
             unsigned char tag[16];
 
-            int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, conn->key, IV, decryptedtext);
+            int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, key, IV, decryptedtext);
             if(decrypted_len < 0)
             {
                 /* Verify error */
                 printf("Decrypted text failed to verify\n");
                 break;
             }
-            
+
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
 
@@ -184,7 +186,7 @@ void* thread_tun2socket()
         /* Encrypt */
         unsigned char ciphertext[20000];
         unsigned char tag[16];
-        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), conn->key, IV, ciphertext, tag);
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
 
         /* Replace destination with user chosen ip */
         hdr->daddr = conn->vip_in;
