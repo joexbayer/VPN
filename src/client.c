@@ -126,6 +126,14 @@ static void handshake()
    	printf("%d\n", encrypt_len);
 
 	rc = sendto(current_connection->udp_socket, encrypt, encrypt_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+
+	rc = read(current_connection->udp_socket, buffer, 100);
+   	if(rc <= 0)
+    {
+    	printf("Could not read ok\n");
+    }
+
+    printf("%s", buffer);
 }
 
 int start_vpn_client(const char* route, const char* server_ip)

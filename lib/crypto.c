@@ -55,9 +55,13 @@ void free_crypto_instance(struct crypto_instance* instance)
 struct crypto_message* vpn_decrypt(struct crypto_instance* instance, uint8_t* ciphertext, uint32_t size)
 {
 	char* decrypt = malloc(30000); /* Fix size of decrypt */
+    char* err = malloc(30000);
     int ret = RSA_private_decrypt(size, (unsigned char*)ciphertext, (unsigned char*)decrypt, instance->keypair, RSA_PKCS1_OAEP_PADDING);
     if(ret == -1)
     {
+    	ERR_load_crypto_strings();
+        ERR_error_string(ERR_get_error(), err);
+        fprintf(stderr, "Error decrypting message: %s\n", err);
     	printf("Something went wrong decrypting message!\n");
     	return NULL;
     }
