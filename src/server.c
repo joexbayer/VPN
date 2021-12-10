@@ -191,15 +191,14 @@ void* thread_tun2socket()
         if(DEBUG)
             printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
 
-        /* Encrypt */
-        unsigned char ciphertext[20000];
-        unsigned char tag[16];
-        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+        // /* Encrypt */
+        // unsigned char ciphertext[20000];
+        // unsigned char tag[16];
+        // int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
 
-        unsigned char* encrypt_tag = malloc(cipher_len+16);
-        memcpy(encrypt_tag, tag, 16);
-        memcpy(encrypt_tag+16, ciphertext, cipher_len);
-        printf("%s\n", tag);
+        // unsigned char* encrypt_tag = malloc(cipher_len+16);
+        // memcpy(encrypt_tag, tag, 16);
+        // memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
         rc = sendto(registry->udp_socket, encrypt_tag, cipher_len+16, 0, (struct sockaddr*)conn->connection, client_struct_length);
         printf("%d\n", cipher_len+16);
