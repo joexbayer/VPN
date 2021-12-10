@@ -7,8 +7,8 @@
 
 /* Encryption OpenSSL AES MOVE OUT */
 int configure_encryption(uint8_t* key);
-int encrypt(uint8_t* cleartext, uint8_t* encrypted);
-int decrypt(uint8_t* ciphertext, uint8_t* decrypted);
+int vpn_encrypt(uint8_t* cleartext, uint8_t* encrypted);
+int vpn_decrypt(uint8_t* ciphertext, uint8_t* decrypted);
 
 /* VPN connection logic */
 int handle_incomming_packet(uint8_t* buffer);
