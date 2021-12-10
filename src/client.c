@@ -106,14 +106,14 @@ static void handshake()
 	int rc = sendto(current_connection->udp_socket, syn, strlen(syn), 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 
 	char* buffer[8046] = {0};
-    int rc = read(current_connection->udp_socket, buffer, 8046);
+    rc = read(current_connection->udp_socket, buffer, 8046);
     if(rc <= 0)
     {
     	printf("Could not read public key\n");
     }
 
     const char *p = buffer;
-	BIO *bufio = BIO_new_mem_buf((void*)p, n);
+	BIO *bufio = BIO_new_mem_buf((void*)p, rc);
 	current_connection->myRSA = PEM_read_bio_RSAPublicKey(bufio, 0, 0, 0);
 
 	char* test = "Joebayer";
@@ -121,7 +121,7 @@ static void handshake()
     char* encrypt = malloc(RSA_size(current_connection->myRSA));
     int encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, current_connection->myRSA, RSA_PKCS1_OAEP_PADDING);
 
-	int rc = sendto(current_connection->udp_socket, encrypt, encrypt_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+	rc = sendto(current_connection->udp_socket, encrypt, encrypt_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 }
 
 int start_vpn_client(const char* route, const char* server_ip)
