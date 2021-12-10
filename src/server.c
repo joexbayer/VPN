@@ -1,6 +1,6 @@
 #include "../includes/server.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 /* Threads */
 pthread_t tid[2];
