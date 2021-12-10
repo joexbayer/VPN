@@ -59,7 +59,7 @@ struct crypto_message* vpn_decrypt(struct crypto_instance* instance, uint8_t* ci
     if(ret == -1)
     {
     	printf("Something went wrong decrypting message!\n");
-    	return ret;
+    	return NULL;
     }
 
     struct crypto_message* message = malloc(sizeof(struct crypto_message));
@@ -75,8 +75,8 @@ struct crypto_message* vpn_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA
     int encrypt_len = RSA_public_encrypt(strlen(size), (unsigned char*)cleartext, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
     if(encrypt_len == -1)
     {
-    	printf("Something went wrong decrypting message!\n");
-    	return encrypt_len;
+    	printf("Something went wrong encrypting message!\n");
+    	return NULL;
     }
 
     struct crypto_message* message = malloc(sizeof(struct crypto_message));

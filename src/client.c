@@ -98,6 +98,32 @@ static void start_threads()
 
 }
 
+
+static void handshake()
+{
+
+	char* syn = "connect";
+	int rc = sendto(current_connection->udp_socket, syn, strlen(syn), 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+
+	char* buffer[8046] = {0};
+    int rc = read(current_connection->udp_socket, buffer, 8046);
+    if(rc <= 0)
+    {
+    	printf("Could not read public key\n");
+    }
+
+    const char *p = buffer;
+	BIO *bufio = BIO_new_mem_buf((void*)p, n);
+	current_connection->myRSA = PEM_read_bio_RSAPublicKey(bufio, 0, 0, 0);
+
+	char* test = "Joebayer";
+
+    char* encrypt = malloc(RSA_size(current_connection->myRSA));
+    int encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, current_connection->myRSA, RSA_PKCS1_OAEP_PADDING);
+
+	int rc = sendto(current_connection->udp_socket, encrypt, encrypt_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+}
+
 int start_vpn_client(const char* route, const char* server_ip)
 {
 	signal(SIGINT, stop_client);
@@ -105,7 +131,7 @@ int start_vpn_client(const char* route, const char* server_ip)
 	current_connection = malloc(sizeof(struct vpn_connection));
 
 	/* Create UDP socket. */
-	current_connection->udp_socket = create_udp_socket(&(current_connection->server_addr),(uint8_t*) server_ip);
+	current_connection->udp_socket = create_udp_socket(&(current_connection->server_addr), (uint8_t*) server_ip);
 	if(current_connection->udp_socket <= 0)
 	{
 		printf("[ERROR] Could not create UDP socket.\n");
@@ -131,8 +157,9 @@ int start_vpn_client(const char* route, const char* server_ip)
 	/* Start socket / TUN threads */
 	start_threads();
 
-	
-    printf("VPN Client is running...\n");
+	printf("VPN Client is Connecting...\n");
+	handshake();
+    printf("VPN Client is Connected.\n");
 
     while(1)
     {

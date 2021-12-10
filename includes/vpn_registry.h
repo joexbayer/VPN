@@ -12,6 +12,7 @@
 enum ConnectionState
 {
     CONNECTED,
+    REGISTERED,
     DISCONNECTED,
     ALIVE
 };

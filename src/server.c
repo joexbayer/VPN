@@ -61,16 +61,51 @@ void* thread_socket2tun()
         pthread_mutex_unlock(&lock);
 
 
-        if(DEBUG)
-            printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
+        switch(conn->state)
+        {
+            case CONNECTED:
+                rc = sendto(registry->udp_socket, crypto->pub_key, strlen(crypto->pub_key), 0, (struct sockaddr*)conn->connection, client_struct_length);
+                conn->state = REGISTERED;
 
-        /* Replace source with given out ip address  */
-        hdr->saddr = conn->vip_out;
-        hdr->saddr = htonl(hdr->saddr);
+                //if(DEBUG)
+                printf("Sent public key to new client\n");
 
-        conn->data_sent += rc;
-        registry->data_out += rc;
-        rc = write(registry->tun_fd, buffer, rc);
+                break;
+
+            case REGISTERED:
+                struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
+                if(msg == NULL)
+                {
+                    printf("Client sent invalid message in REGISTERED state\n");
+                    continue;
+                }
+
+                /* Allocate memory for key and add 0 terminator */
+                conn->key = malloc(msg->size+1);
+                memcpy(conn->key, msg->buffer, msg->size);
+                conn->key[msg->size+1] = 0;
+
+                conn->state = ALIVE;
+
+                printf("Registered new key for connection: %s\n". conn->key);
+
+                char* ok = "OK";
+                rc = sendto(registry->udp_socket, ok, strlen(ok), 0, (struct sockaddr*)conn->connection, client_struct_length);
+                break;
+
+            case ALIVE:
+                if(DEBUG)
+                    printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
+
+                /* Replace source with given out ip address  */
+                hdr->saddr = conn->vip_out;
+                hdr->saddr = htonl(hdr->saddr);
+
+                conn->data_sent += rc;
+                registry->data_out += rc;
+                rc = write(registry->tun_fd, buffer, rc);
+                break;
+        }
     }
 }
 
@@ -87,6 +122,7 @@ void* thread_tun2socket()
     char* buffer[2555] = {0};
     struct sockaddr_in client_addr;
     int client_struct_length = sizeof(client_addr);
+
     while(1)
     {
         int rc = read(registry->tun_fd, buffer, 2555);

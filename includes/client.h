@@ -3,16 +3,19 @@
 
 #include "common.h"
 #include "vpn_config.h"
+#include "crypto.h"
 
 struct vpn_connection
 {
-
 	uint32_t virtual_ip;
 	uint32_t data_sent;
 	uint32_t data_recv;
 	struct sockaddr_in server_addr;
 	int udp_socket;
 	int tun_fd;
+
+	/* Crypto */
+	RSA *myRSA;
 
 };
 

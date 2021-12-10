@@ -105,7 +105,9 @@ inline struct vpn_connection* register_connection(struct vpn_registry* registry,
             struct sockaddr_in* conn = malloc(sizeof(struct sockaddr_in));
             memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
             vpc->connection = conn;
+            
             vpc->state = CONNECTED;
+
             vpc->vip_in = client_virtual_ip;
             /* Assigning clients virtual IP to be base ip + index of connection. */
             vpc->vip_out = htonl(registry->vpn_ip_raw) + (i+1);
