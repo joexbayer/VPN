@@ -138,7 +138,7 @@ void start_server(const char* network)
     registry = create_registry((uint8_t*) network);
 
     struct sockaddr_in server;
-    registry->udp_socket = create_udp_socket(&server, INADDR_ANY);
+    registry->udp_socket = create_udp_socket(&server, "0");
     registry->tun_fd = create_tun_interface(network);
 
     int conf = configure_ip_forwarding(network);
