@@ -37,6 +37,7 @@ struct crypto_instance* crypto_init()
     instance->pri_key[pri_len] = '\0';
     instance->pub_key[pub_len] = '\0';
 
+    printf("\n%s\n", instance->pri_key);
     printf("\n%s\n", instance->pub_key);
     printf("Created RSA keypair.\n");
 
