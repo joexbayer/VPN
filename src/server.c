@@ -86,8 +86,8 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
                 break;
             }
 
-            struct ip_hdr* hdr2 = (struct ip_hdr*) decryptedtext;
-            hdr2->saddr = ntohl(hdr2->saddr);
+            struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
+            hdr->saddr = ntohl(hdr->saddr);
 
             if(DEBUG)
                 printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", decrypted_len, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
