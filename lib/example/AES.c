@@ -46,7 +46,7 @@ int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *
     ciphertext_len += len;
 
     /* Get the tag */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag);
+    //EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag);
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
@@ -90,7 +90,7 @@ int vpn_aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char
     }
 
     /* Set expected tag value. Works in OpenSSL 1.0.1d and later */
-    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag);
+    //EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag);
 
     /* Finalise the decryption. A positive return value indicates success,
      * anything else is a failure - the plaintext is not trustworthy.
