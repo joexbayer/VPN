@@ -4,7 +4,7 @@ static pthread_t tid[2];
 static struct vpn_connection* current_connection;
 
 //static const unsigned char key[] = "01234567890123456789012345678901";
-static const unsigned char key[32];
+static unsigned char key[32];
 
 /**
  * stop_client - Signal function
@@ -127,18 +127,6 @@ static void start_threads()
 
 }
 
-static inline void key_init()
-{
-	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-	for (int i = 0; i < 32; ++i)
-	{
-		int key_index = rand() % (int) (sizeof(charset - 1));
-		key[key_index] = charset[key_index]
-	}
-
-	printf("%s\n", key);
-}
-
 /** handshake
  * Handshake for exchanging crypto information from server.
  * @void: 
@@ -161,15 +149,11 @@ static void handshake()
     	printf("Could not read public key\n");
     }
 
-    printf("Received public key from server:\n%s\n", buffer);
-
     const char *p = buffer;
 	current_connection->bufio = BIO_new_mem_buf((void*)p, rc);
 	current_connection->myRSA = PEM_read_bio_RSAPublicKey(current_connection->bufio, 0, 0, 0);
 
 	struct crypto_message* msg = vpn_rsa_encrypt(key, strlen(key), current_connection->myRSA);
-
-   	printf("%d\n", msg->size);
 
 	rc = sendto(current_connection->udp_socket, msg->buffer, msg->size, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 	rc = read(current_connection->udp_socket, buffer, 100);
@@ -178,7 +162,6 @@ static void handshake()
     	printf("Could not read ok\n");
     }
 
-    printf("%s", buffer);
     free(msg->buffer);
     free(msg);
 }
@@ -189,6 +172,15 @@ int start_vpn_client(const char* route, const char* server_ip)
 
 	current_connection = malloc(sizeof(struct vpn_connection));
 	OpenSSL_add_all_algorithms();
+
+	/* init Key */
+	RAND_bytes(key, sizeof key);
+
+	for (int i = 0; i < 32; ++i)
+	{
+		printf("%x:", key[i]);
+	}
+	printf("\n");
 
 	/* Create UDP socket. */
 	current_connection->udp_socket = create_udp_socket(&(current_connection->server_addr), (uint8_t*) server_ip);
@@ -214,9 +206,11 @@ int start_vpn_client(const char* route, const char* server_ip)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("VPN Client is Connecting...\n");
+	printf("\n\n");
+	printf("VPN Client is Connecting...");
+	fflush(stdout);
 	handshake();
-    printf("VPN Client is Connected.\n");
+    printf("\rVPN Client succesfully Connected!\n");
 
 	/* Start socket / TUN threads */
 	start_threads();

@@ -10,6 +10,8 @@
 
 #include <openssl/err.h>
 
+#include <openssl/rand.h>
+
 #define KEY_LENGTH 2048
 #define PUB_EXP 3
 
