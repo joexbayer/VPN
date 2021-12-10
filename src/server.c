@@ -28,8 +28,9 @@ void stop_server()
  * 
  * returns void
  */
-void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
+void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, struct sockaddr_in client_addr)
 {
+    int client_struct_length = sizeof(client_addr);
     switch(conn->state)
     {
         case CONNECTED:
@@ -79,7 +80,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
             {
                 /* Verify error */
                 printf("Decrypted text failed to verify\n");
-                continue;
+                break;
             }
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
@@ -93,7 +94,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
 
             conn->data_sent += decrypted_len;
             registry->data_out += decrypted_len;
-            rc = write(registry->tun_fd, decryptedtext, decrypted_len);
+            rc = write(registry->tun_fd, decryptedtext, decrypted_len, client_addr);
             break;
     }
 }
