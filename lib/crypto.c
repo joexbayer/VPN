@@ -39,6 +39,8 @@ struct crypto_instance* crypto_init()
 
     printf("\n%s\n", instance->pub_key);
     printf("Created RSA keypair.\n");
+
+    return ret;
 };
 
 void free_crypto_instance(struct crypto_instance* instance)
@@ -74,7 +76,7 @@ struct crypto_message* vpn_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA
     if(encrypt_len == -1)
     {
     	printf("Something went wrong decrypting message!\n");
-    	return ret;
+    	return encrypt_len;
     }
 
     struct crypto_message* message = malloc(sizeof(struct crypto_message));
