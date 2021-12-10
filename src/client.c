@@ -41,12 +41,12 @@ void* thread_socket2tun()
         	continue;
         }
 
-        printf("%d\n", rc);
-
          /* Decrypt */
         unsigned char decryptedtext[20000];
         unsigned char* tag = malloc(16);
         memcpy(tag, buffer, 16);
+
+        printf("%s\n", tag);
 
         int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)

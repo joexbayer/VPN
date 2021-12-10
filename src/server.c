@@ -199,6 +199,7 @@ void* thread_tun2socket()
         unsigned char* encrypt_tag = malloc(cipher_len+16);
         memcpy(encrypt_tag, tag, 16);
         memcpy(encrypt_tag+16, ciphertext, cipher_len);
+        printf("%s\n", tag);
 
         rc = sendto(registry->udp_socket, encrypt_tag, cipher_len+16, 0, (struct sockaddr*)conn->connection, client_struct_length);
         printf("%d\n", cipher_len+16);
