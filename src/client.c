@@ -158,12 +158,12 @@ int start_vpn_client(const char* route, const char* server_ip)
 		exit(EXIT_FAILURE);
 	}
 
-	/* Start socket / TUN threads */
-	start_threads();
-
 	printf("VPN Client is Connecting...\n");
 	handshake();
     printf("VPN Client is Connected.\n");
+
+	/* Start socket / TUN threads */
+	start_threads();
 
     while(1)
     {
