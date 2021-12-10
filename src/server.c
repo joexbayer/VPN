@@ -1,9 +1,5 @@
 #include "../includes/server.h"
 
-#include <openssl/rsa.h>
-#include <openssl/pem.h>
-#include <openssl/err.h>
-
 #define DEBUG 0
 
 /* Threads */
@@ -12,7 +8,6 @@ pthread_mutex_t lock;
 
 struct vpn_registry* registry;
 struct crypto_instance* crypto;
-
 
 void stop_server()
 {
@@ -39,39 +34,6 @@ void* thread_socket2tun()
     struct sockaddr_in client_addr;
     int client_struct_length = sizeof(client_addr);
 
-    BIGNUM *bne = BN_new();
-    int ret = BN_set_word(bne, PUB_EXP);
-
-    // Generate key pair
-    printf("Generating RSA (%d bits) keypair...", KEY_LENGTH);
-    fflush(stdout);
-
-    // create key
-    RSA *keypair = RSA_new();
-    ret = RSA_generate_key_ex(keypair, KEY_LENGTH, bne, NULL);
-
-    // To get the C-string PEM form:
-    BIO *pri = BIO_new(BIO_s_mem());
-    BIO *pub = BIO_new(BIO_s_mem());
-    PEM_write_bio_RSAPrivateKey(pri, keypair, NULL, NULL, 0, NULL, NULL);
-    PEM_write_bio_RSAPublicKey(pub, keypair);
-
-    // key lengths
-    size_t pri_len = BIO_pending(pri);
-    size_t pub_len = BIO_pending(pub);
-
-    // char* allocs.
-    char* pri_key = malloc(pri_len + 1);
-    char* pub_key = malloc(pub_len + 1);
-
-    // read in BIO
-    BIO_read(pri, pri_key, pri_len);
-    BIO_read(pub, pub_key, pub_len);
-
-    // add 0 terminator.
-    pri_key[pri_len] = '\0';
-    pub_key[pub_len] = '\0';
-
     while(1)
     {
         int rc = recvfrom(registry->udp_socket, buffer, 2555, 0, (struct sockaddr*)&client_addr,(socklen_t*) &client_struct_length);
@@ -80,14 +42,14 @@ void* thread_socket2tun()
             continue;
         }
 
-        struct ip_hdr* hdr = (struct ip_hdr*) buffer;
-        hdr->saddr = ntohl(hdr->saddr);
-
         /* look for connection in registry. */
         pthread_mutex_lock(&lock);
         struct vpn_connection* conn = get_vpn_connection_addr(registry, client_addr.sin_addr.s_addr);
         if(conn == NULL)
         {
+            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+            hdr->saddr = ntohl(hdr->saddr);
+
             conn = register_connection(registry, hdr->saddr, client_addr);
             if(conn == NULL)
             {
@@ -98,10 +60,11 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
+
         switch(conn->state)
         {
             case CONNECTED:
-                rc = sendto(registry->udp_socket, pub_key, strlen(pub_key), 0, (struct sockaddr*)conn->connection, client_struct_length);
+                rc = sendto(registry->udp_socket, crypto->pub_key, strlen(crypto->pub_key), 0, (struct sockaddr*)conn->connection, client_struct_length);
                 conn->state = REGISTERED;
 
                 //if(DEBUG)
@@ -111,29 +74,17 @@ void* thread_socket2tun()
 
             case REGISTERED:
                 ;
-                printf("Received %d bytes\n", rc);
-                // struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
-                // if(msg == NULL)
-                // {
-                //     printf("Client sent invalid message in REGISTERED state\n");
-                //     continue;
-                // }
-
-                // /* Allocate memory for key and add 0 terminator */
-                // conn->key = malloc(msg->size+1);
-                // memcpy(conn->key, msg->buffer, msg->size);
-                // conn->key[msg->size+1] = 0;
-
-                char* decrypt = malloc(30000);
-                char* err = malloc(30000);
-                if(RSA_private_decrypt(rc, (unsigned char*)buffer, (unsigned char*)decrypt,
-                               keypair, RSA_PKCS1_OAEP_PADDING) == -1) {
-                    ERR_load_crypto_strings();
-                    ERR_error_string(ERR_get_error(), err);
-                    fprintf(stderr, "Error decrypting message: %s\n", err);
-                    exit(EXIT_FAILURE);
+                struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
+                if(msg == NULL)
+                {
+                    printf("Client sent invalid message in REGISTERED state\n");
+                    continue;
                 }
-                printf("%s\n", decrypt);
+
+                /* Allocate memory for key and add 0 terminator */
+                conn->key = malloc(msg->size+1);
+                memcpy(conn->key, msg->buffer, msg->size);
+                conn->key[msg->size+1] = 0;
 
                 conn->state = ALIVE;
 
@@ -144,6 +95,10 @@ void* thread_socket2tun()
                 break;
 
             case ALIVE:
+                ;
+                struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+                hdr->saddr = ntohl(hdr->saddr);
+
                 if(DEBUG)
                     printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
 
@@ -223,7 +178,7 @@ void start_server(const char* network)
     registry = create_registry((uint8_t*) network);
 
     /* Create Crypto instance */
-    //crypto = crypto_init();
+    crypto = crypto_init();
 
     struct sockaddr_in server;
     registry->udp_socket = create_udp_socket(&server, "0");
@@ -261,7 +216,7 @@ void start_server(const char* network)
     {
         sleep(3);
 
-        printf("\rConnected Users: %d, Sending: %d kb/s, Receving: %d kb/s                   ", registry->size, (registry->data_in/1024)/3, (registry->data_out/1024)/3);
+        printf("\rConnected Users: %d, Sending: %d kb/s, Receving: %d kb/s", registry->size, (registry->data_in/1024)/3, (registry->data_out/1024)/3);
         fflush(stdout);
 
         pthread_mutex_lock(&lock);
