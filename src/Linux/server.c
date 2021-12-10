@@ -46,6 +46,10 @@ void* thread_socket2tun()
         struct ip_hdr* hdr = (struct ip_hdr*) buffer;
         hdr->saddr = ntohl(hdr->saddr);
 
+        if(DEBUG)
+            printf("recv: %d from %d\n", rc, hdr->saddr);
+
+
         /* look for connection in registry. */
         pthread_mutex_lock(&lock);
         struct vpn_connection* conn = get_vpn_connection_addr(registry, client_addr.sin_addr.s_addr);
