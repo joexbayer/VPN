@@ -32,7 +32,7 @@ void stop_client()
  */
 void* thread_socket2tun()
 {
-	char* buffer[2555] = {0};
+	unsigned char buffer[2555] = {0};
 	while(1)
 	{
         int rc = read(current_connection->udp_socket, buffer, 2555);
@@ -45,19 +45,6 @@ void* thread_socket2tun()
         unsigned char decryptedtext[20000];
         unsigned char* tag = malloc(16);
         memcpy(tag, buffer, 16);
-
-        printf("TAG:\n");
-        for (int i = 0; i < 16; ++i)
-        {
-        	printf("%x:", tag[i]);
-        }
-        printf("\n");
-
-        printf("Message:\n");
-        for (int i = 0; i < rc-16; ++i)
-        {
-        	printf("%x:", buffer[16+i]);
-        }
 
         int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)
