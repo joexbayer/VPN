@@ -13,39 +13,6 @@ pthread_mutex_t lock;
 struct vpn_registry* registry;
 struct crypto_instance* crypto;
 
-BIGNUM *bne = BN_new();
-int ret = BN_set_word(bne, PUB_EXP);
-
-// Generate key pair
-printf("Generating RSA (%d bits) keypair...", KEY_LENGTH);
-fflush(stdout);
-
-// create key
-RSA *keypair = RSA_new();
-ret = RSA_generate_key_ex(keypair, KEY_LENGTH, bne, NULL);
-
-// To get the C-string PEM form:
-BIO *pri = BIO_new(BIO_s_mem());
-BIO *pub = BIO_new(BIO_s_mem());
-PEM_write_bio_RSAPrivateKey(pri, keypair, NULL, NULL, 0, NULL, NULL);
-PEM_write_bio_RSAPublicKey(pub, keypair);
-
-// key lengths
-size_t pri_len = BIO_pending(pri);
-size_t pub_len = BIO_pending(pub);
-
-// char* allocs.
-char* pri_key = malloc(pri_len + 1);
-char* pub_key = malloc(pub_len + 1);
-
-// read in BIO
-BIO_read(pri, pri_key, pri_len);
-BIO_read(pub, pub_key, pub_len);
-
-// add 0 terminator.
-pri_key[pri_len] = '\0';
-pub_key[pub_len] = '\0';
-
 
 void stop_server()
 {
@@ -71,6 +38,39 @@ void* thread_socket2tun()
     char* buffer[2555] = {0};
     struct sockaddr_in client_addr;
     int client_struct_length = sizeof(client_addr);
+
+    BIGNUM *bne = BN_new();
+    int ret = BN_set_word(bne, PUB_EXP);
+
+    // Generate key pair
+    printf("Generating RSA (%d bits) keypair...", KEY_LENGTH);
+    fflush(stdout);
+
+    // create key
+    RSA *keypair = RSA_new();
+    ret = RSA_generate_key_ex(keypair, KEY_LENGTH, bne, NULL);
+
+    // To get the C-string PEM form:
+    BIO *pri = BIO_new(BIO_s_mem());
+    BIO *pub = BIO_new(BIO_s_mem());
+    PEM_write_bio_RSAPrivateKey(pri, keypair, NULL, NULL, 0, NULL, NULL);
+    PEM_write_bio_RSAPublicKey(pub, keypair);
+
+    // key lengths
+    size_t pri_len = BIO_pending(pri);
+    size_t pub_len = BIO_pending(pub);
+
+    // char* allocs.
+    char* pri_key = malloc(pri_len + 1);
+    char* pub_key = malloc(pub_len + 1);
+
+    // read in BIO
+    BIO_read(pri, pri_key, pri_len);
+    BIO_read(pub, pub_key, pub_len);
+
+    // add 0 terminator.
+    pri_key[pri_len] = '\0';
+    pub_key[pub_len] = '\0';
 
     while(1)
     {
