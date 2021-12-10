@@ -115,8 +115,8 @@ static void handshake()
     printf("Received public key from server:\n%s\n", buffer);
 
     const char *p = buffer;
-	BIO *bufio = BIO_new_mem_buf((void*)p, rc);
-	current_connection->myRSA = PEM_read_bio_RSAPublicKey(bufio, 0, 0, 0);
+	current_connection->bufio = BIO_new_mem_buf((void*)p, rc);
+	current_connection->myRSA = PEM_read_bio_RSAPublicKey(current_connection->bufio, 0, 0, 0);
 
 	char* test = "Joebayer";
 

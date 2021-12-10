@@ -16,6 +16,7 @@ struct vpn_connection
 
 	/* Crypto */
 	RSA *myRSA;
+	BIO *bufio;
 
 };
 

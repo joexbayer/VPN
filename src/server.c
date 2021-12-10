@@ -74,6 +74,7 @@ void* thread_socket2tun()
 
             case REGISTERED:
                 ;
+                printf("Received %d bytes\n", rc);
                 struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
                 if(msg == NULL)
                 {
