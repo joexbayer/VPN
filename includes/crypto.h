@@ -40,6 +40,8 @@ struct crypto_instance* crypto_init();
 void free_crypto_instance(struct crypto_instance* instance);
 struct crypto_message* vpn_rsa_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA);
 struct crypto_message* vpn_rsa_decrypt(struct crypto_instance* instance, uint8_t* ciphertext, uint32_t size);
+int vpn_aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad, int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad, int aad_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned char *tag);
 
 
 #endif
