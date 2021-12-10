@@ -2,13 +2,11 @@
 #define SERVER_H value
 
 #include "common.h"
+#include "vpn_registry.h"
+#include "vpn_config.h"
+#include "crypto.h"
 
 #define MAX_CONNECTIONS 255
-
-/* Encryption OpenSSL AES MOVE OUT */
-int configure_encryption(uint8_t* key);
-int vpn_encrypt(uint8_t* cleartext, uint8_t* encrypted);
-int vpn_decrypt(uint8_t* ciphertext, uint8_t* decrypted);
 
 /* VPN connection logic */
 int handle_incomming_packet(uint8_t* buffer);

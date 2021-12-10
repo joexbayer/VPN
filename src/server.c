@@ -1,14 +1,13 @@
 #include "../../includes/server.h"
-#include "../../includes/vpn_registry.h"
-#include "../../includes/vpn_config.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 /* Threads */
 pthread_t tid[2];
 pthread_mutex_t lock;
 
 struct vpn_registry* registry;
+struct crypto_instance* crypto;
 
 void stop_server()
 {
@@ -45,10 +44,6 @@ void* thread_socket2tun()
 
         struct ip_hdr* hdr = (struct ip_hdr*) buffer;
         hdr->saddr = ntohl(hdr->saddr);
-
-        if(DEBUG)
-            printf("recv: %d from %d\n", rc, hdr->saddr);
-
 
         /* look for connection in registry. */
         pthread_mutex_lock(&lock);
@@ -140,6 +135,9 @@ void start_server(const char* network)
 
     /* Create a new VPN registry */
     registry = create_registry((uint8_t*) network);
+
+    /* Create Crypto instance */
+    crypto = crypto_init();
 
     struct sockaddr_in server;
     registry->udp_socket = create_udp_socket(&server, "0");
