@@ -48,7 +48,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
             if(msg == NULL)
             {
                 printf("Client sent invalid message in REGISTERED state\n");
-                continue;
+                break;
             }
 
             /* Allocate memory for key and add 0 terminator */
