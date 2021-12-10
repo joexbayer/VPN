@@ -182,7 +182,7 @@ void* thread_tun2socket()
         /* Encrypt */
         unsigned char ciphertext[20000];
         unsigned char tag[16];
-        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), conn->key, IV, ciphertext, tag);
 
         /* Replace destination with user chosen ip */
         hdr->daddr = conn->vip_in;
