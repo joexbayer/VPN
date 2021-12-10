@@ -121,6 +121,7 @@ void* thread_socket2tun()
                 // conn->key[msg->size+1] = 0;
 
                 char* decrypt = malloc(30000);
+                char* err = malloc(30000);
                 if(RSA_private_decrypt(rc, (unsigned char*)buffer, (unsigned char*)decrypt,
                                keypair, RSA_PKCS1_OAEP_PADDING) == -1) {
                     ERR_load_crypto_strings();
