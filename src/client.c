@@ -46,11 +46,18 @@ void* thread_socket2tun()
         unsigned char* tag = malloc(16);
         memcpy(tag, buffer, 16);
 
+        printf("TAG:\n");
         for (int i = 0; i < 16; ++i)
         {
-        	printf("%d:", tag[i]);
+        	printf("%x:", tag[i]);
         }
         printf("\n");
+
+        printf("Message:\n");
+        for (int i = 0; i < rc-16; ++i)
+        {
+        	printf("%x:", buffer[16+i]);
+        }
 
         int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)
