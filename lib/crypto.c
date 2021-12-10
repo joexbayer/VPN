@@ -89,8 +89,8 @@ void free_crypto_instance(struct crypto_instance* instance)
  */
 struct crypto_message* vpn_rsa_decrypt(struct crypto_instance* instance, uint8_t* ciphertext, uint32_t size)
 {
-	char* decrypt = malloc(30000); /* Fix size of decrypt */
-    char* err = malloc(30000);
+	char* decrypt = malloc(2555); /* Fix size of decrypt */
+    char* err = malloc(100);
     int ret = RSA_private_decrypt(size, (unsigned char*)ciphertext, (unsigned char*)decrypt, instance->keypair, RSA_PKCS1_OAEP_PADDING);
     if(ret == -1)
     {
@@ -139,6 +139,23 @@ struct crypto_message* vpn_rsa_encrypt(uint8_t* cleartext, uint32_t size, RSA *m
     return message;
 }
 
+/** vpn_aes_encrypt
+ * Encrypts given plaintext based on AES key
+ * 
+ * @plaintext: text to encrypt
+ * @plaintext_len: size of plaintext
+ * @aad: additional authenticated data 
+ * @add_len: length of additional authenticated data
+ * @key: key to use for decryption
+ * @iv: IV for decryption
+ * @ciphertext: result of encryption
+ * @tag: tag for integrity
+ * 
+ * Uses AES encryption on given plaintext
+ * important is that TAG is correct
+ * 
+ * Returns size of ciphertext or -1
+ */
 int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad, int aad_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned char *tag)
 {
     EVP_CIPHER_CTX *ctx = NULL;
@@ -188,6 +205,24 @@ int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *
     return ciphertext_len;
 }
 
+
+/** vpn_aes_decrypt
+ * Decrypts given ciphertext based on AES key
+ * 
+ * @ciphertext: text to decrypt
+ * @ciphertext_len: size of ciphertext
+ * @aad: additional authenticated data 
+ * @add_len: length of additional authenticated data
+ * @tag: integrity tag
+ * @key: key to use for decryption
+ * @iv: IV for decryption
+ * @plaintext: result put in plaintext
+ * 
+ * Uses AES decryption on given ciphertext
+ * important is that TAG is correct
+ * 
+ * Returns size of plaintext or -1
+ */
 int vpn_aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad, int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, unsigned char *plaintext)
 {
     EVP_CIPHER_CTX *ctx = NULL;

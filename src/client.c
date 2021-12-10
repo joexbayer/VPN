@@ -42,7 +42,7 @@ void* thread_socket2tun()
         }
 
         /* Decrypt */
-        unsigned char decryptedtext[20000];
+        unsigned char decryptedtext[2555];
         unsigned char* tag = malloc(16);
         memcpy(tag, buffer, 16);
 

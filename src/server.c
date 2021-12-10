@@ -6,8 +6,6 @@
 pthread_t tid[2];
 pthread_mutex_t lock;
 
-static const unsigned char key[] = "01234567890123456789012345678901";
-
 struct vpn_registry* registry;
 struct crypto_instance* crypto;
 
@@ -74,11 +72,11 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
             ;
 
             /* Decrypt */
-            unsigned char decryptedtext[20000];
+            unsigned char decryptedtext[2555];
             unsigned char* tag = malloc(16);
             memcpy(tag, buffer, 16);
 
-            int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
+            int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, conn->key, IV, decryptedtext);
             if(decrypted_len < 0)
             {
                 /* Verify error */
@@ -194,9 +192,9 @@ void* thread_tun2socket()
             printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
 
         /* Encrypt */
-        unsigned char ciphertext[20000];
+        unsigned char ciphertext[2555];
         unsigned char tag[16];
-        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), conn->key, IV, ciphertext, tag);
 
         unsigned char* encrypt_tag = malloc(cipher_len+16);
         memcpy(encrypt_tag, tag, 16);
