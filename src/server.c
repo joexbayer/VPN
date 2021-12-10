@@ -1,5 +1,9 @@
 #include "../includes/server.h"
 
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+
 #define DEBUG 0
 
 /* Threads */
