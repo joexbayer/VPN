@@ -52,14 +52,13 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
             }
 
             /* Allocate memory for key and add 0 terminator */
-            conn->key = malloc(msg->size+1);
+            conn->key = malloc(msg->size);
             memcpy(conn->key, msg->buffer, msg->size);
-            conn->key[msg->size+1] = 0;
             conn->key_length = msg->size;
 
             conn->state = ALIVE;
             if(DEBUG)
-                printf("Registered new key for connection: %s\n", conn->key);
+                printf("Registered new key for connection\n");
 
             char* ok = "OK";
             rc = sendto(registry->udp_socket, ok, strlen(ok), 0, (struct sockaddr*)conn->connection, client_struct_length);
