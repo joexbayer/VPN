@@ -83,7 +83,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
             {
                 /* Verify error */
                 printf("Decrypted text failed to verify\n");
-                continue;
+                break;
             }
 
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
