@@ -109,12 +109,24 @@ void* thread_socket2tun()
             continue;
         }
 
+        /* Decrypt */
+        unsigned char decryptedtext[20000];
+        unsigned char tag[16];
+
+        int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, key, IV, decryptedtext);
+        if(decryptedtext_len < 0)
+        {
+            /* Verify error */
+            printf("Decrypted text failed to verify\n");
+            continue;
+        }
+
         /* look for connection in registry. */
         pthread_mutex_lock(&lock);
         struct vpn_connection* conn = get_vpn_connection_addr(registry, client_addr.sin_addr.s_addr);
         if(conn == NULL)
         {
-            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+            struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
 
             conn = register_connection(registry, hdr->saddr, client_addr);
@@ -127,7 +139,7 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
-        handle_vpn_connection(conn, buffer, rc);
+        handle_vpn_connection(conn, decryptedtext, decrypted_len);
         
     }
 }
@@ -166,6 +178,11 @@ void* thread_tun2socket()
             continue;
         }
 
+        /* Encrypt */
+        unsigned char ciphertext[20000];
+        unsigned char tag[16];
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+
         /* Replace destination with user chosen ip */
         hdr->daddr = conn->vip_in;
         hdr->daddr = htonl(hdr->daddr);
@@ -175,7 +192,7 @@ void* thread_tun2socket()
 
         conn->data_recv += rc;
         registry->data_in += rc;
-        rc = sendto(registry->udp_socket, buffer, rc, 0, (struct sockaddr*)conn->connection, client_struct_length);
+        rc = sendto(registry->udp_socket, ciphertext, cipher_len, 0, (struct sockaddr*)conn->connection, client_struct_length);
     }
 }
 
@@ -191,6 +208,7 @@ void* thread_tun2socket()
 void start_server(const char* network)
 {
     signal(SIGINT, stop_server);
+    OpenSSL_add_all_algorithms();
 
     /* Create a new VPN registry */
     registry = create_registry((uint8_t*) network);

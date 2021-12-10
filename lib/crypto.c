@@ -1,5 +1,11 @@
 #include "../includes/crypto.h"
 
+ /* A 128 bit IV */
+const unsigned char IV[] = "0123456789012345";
+
+    /* Some additional data to be authenticated */
+const unsigned char aad[] = "Some AAD data";
+
 /** crypto_instance
  * Used to initilize crypto context for server
  * @void: 
@@ -131,4 +137,112 @@ struct crypto_message* vpn_rsa_encrypt(uint8_t* cleartext, uint32_t size, RSA *m
     message->size = encrypt_len;
 
     return message;
+}
+
+int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad, int aad_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned char *tag)
+{
+    EVP_CIPHER_CTX *ctx = NULL;
+    int len = 0, ciphertext_len = 0;
+
+    /* Create and initialise the context */
+    ctx = EVP_CIPHER_CTX_new();
+
+    /* Initialise the encryption operation. */
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
+
+    /* Set IV length if default 12 bytes (96 bits) is not appropriate */
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL);
+
+    /* Initialise key and IV */
+    EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv);
+
+    /* Provide any AAD data. This can be called zero or more times as
+     * required
+     */
+    if(aad && aad_len > 0)
+    {
+        EVP_EncryptUpdate(ctx, NULL, &len, aad, aad_len);
+    }
+
+    /* Provide the message to be encrypted, and obtain the encrypted output.
+     * EVP_EncryptUpdate can be called multiple times if necessary
+     */
+    if(plaintext)
+    {
+        EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len);
+        ciphertext_len = len;
+    }
+
+    /* Finalise the encryption. Normally ciphertext bytes may be written at
+     * this stage, but this does not occur in GCM mode
+     */
+    EVP_EncryptFinal_ex(ctx, ciphertext + len, &len);
+    ciphertext_len += len;
+
+    /* Get the tag */
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag);
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+
+    return ciphertext_len;
+}
+
+int vpn_aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad, int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, unsigned char *plaintext)
+{
+    EVP_CIPHER_CTX *ctx = NULL;
+    int len = 0, plaintext_len = 0, ret;
+
+    /* Create and initialise the context */
+    ctx = EVP_CIPHER_CTX_new();
+
+    /* Initialise the decryption operation. */
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
+
+    /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL);
+
+    /* Initialise key and IV */
+    EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv);
+
+    /* Provide any AAD data. This can be called zero or more times as
+     * required
+     */
+    if(aad && aad_len > 0)
+    {
+        EVP_DecryptUpdate(ctx, NULL, &len, aad, aad_len);
+    }
+
+    /* Provide the message to be decrypted, and obtain the plaintext output.
+     * EVP_DecryptUpdate can be called multiple times if necessary
+     */
+    if(ciphertext)
+    {
+        EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len);
+
+        plaintext_len = len;
+    }
+
+    /* Set expected tag value. Works in OpenSSL 1.0.1d and later */
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag);
+
+    /* Finalise the decryption. A positive return value indicates success,
+     * anything else is a failure - the plaintext is not trustworthy.
+     */
+    ret = EVP_DecryptFinal_ex(ctx, plaintext + len, &len);
+
+    /* Clean up */
+    EVP_CIPHER_CTX_free(ctx);
+
+    if(ret > 0)
+    {
+        /* Success */
+        plaintext_len += len;
+        return plaintext_len;
+    }
+    else
+    {
+        /* Verify failed */
+        return -1;
+    }
 }

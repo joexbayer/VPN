@@ -5,23 +5,7 @@
 
 /* https://stackoverflow.com/questions/24856303/openssl-aes-256-cbc-via-evp-api-in-c */
 
-
-void handleErrors(void)
-{
-    unsigned long errCode;
-
-    printf("An error occurred\n");
-    while(errCode = ERR_get_error())
-    {
-        char *err = ERR_error_string(errCode, NULL);
-        printf("%s\n", err);
-    }
-    abort();
-}
-
-int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad,
-            int aad_len, unsigned char *key, unsigned char *iv,
-            unsigned char *ciphertext, unsigned char *tag)
+int vpn_aes_encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad, int aad_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext, unsigned char *tag)
 {
     EVP_CIPHER_CTX *ctx = NULL;
     int len = 0, ciphertext_len = 0;
@@ -70,9 +54,7 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad,
     return ciphertext_len;
 }
 
-int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad,
-            int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv,
-            unsigned char *plaintext)
+int vpn_aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad, int aad_len, unsigned char *tag, unsigned char *key, unsigned char *iv, unsigned char *plaintext)
 {
     EVP_CIPHER_CTX *ctx = NULL;
     int len = 0, plaintext_len = 0, ret;
@@ -134,7 +116,7 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad,
 int main(int arc, char *argv[])
 {
     OpenSSL_add_all_algorithms();
-    ERR_load_crypto_strings();     
+    //ERR_load_crypto_strings();     
 
     /* Set up the key and iv. Do I need to say to not hard code these in a real application? :-) */
 
@@ -144,20 +126,20 @@ int main(int arc, char *argv[])
     /* A 128 bit IV */
     static const unsigned char iv[] = "0123456789012345";
 
-    /* Message to be encrypted */
-    unsigned char plaintext[] = "The quick brown fox jumps over the lazy dog";
-
     /* Some additional data to be authenticated */
     static const unsigned char aad[] = "Some AAD data";
 
+
+    /* Message to be encrypted */
+    unsigned char plaintext[] = "The quick brown fox jumps over the lazy dog";
     /* Buffer for ciphertext. Ensure the buffer is long enough for the
      * ciphertext which may be longer than the plaintext, dependant on the
      * algorithm and mode
      */
-    unsigned char ciphertext[128];
+    unsigned char ciphertext[20000];
 
     /* Buffer for the decrypted text */
-    unsigned char decryptedtext[128];
+    unsigned char decryptedtext[20000];
 
     /* Buffer for the tag */
     unsigned char tag[16];
@@ -165,7 +147,7 @@ int main(int arc, char *argv[])
     int decryptedtext_len = 0, ciphertext_len = 0;
 
     /* Encrypt the plaintext */
-    ciphertext_len = encrypt(plaintext, strlen(plaintext), aad, strlen(aad), key, iv, ciphertext, tag);
+    ciphertext_len = vpn_aes_encrypt(plaintext, strlen(plaintext), aad, strlen(aad), key, iv, ciphertext, tag);
 
     /* Do something useful with the ciphertext here */
     printf("Ciphertext is:\n");
@@ -174,11 +156,11 @@ int main(int arc, char *argv[])
     BIO_dump_fp(stdout, tag, 14);
 
     /* Mess with stuff */
-    ciphertext[0] ^= 1;
-    tag[0] ^= 1;
+    //ciphertext[0] ^= 1;
+    //tag[0] ^= 1;
 
     /* Decrypt the ciphertext */
-    decryptedtext_len = decrypt(ciphertext, ciphertext_len, aad, strlen(aad), tag, key, iv, decryptedtext);
+    decryptedtext_len = vpn_aes_decrypt(ciphertext, ciphertext_len, aad, strlen(aad), tag, key, iv, decryptedtext);
 
     if(decryptedtext_len < 0)
     {

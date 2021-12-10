@@ -3,6 +3,8 @@
 static pthread_t tid[2];
 static struct vpn_connection* current_connection;
 
+static const unsigned char key[] = "01234567890123456789012345678901";
+
 /**
  * stop_client - Signal function
  * @arg: potential arguments
@@ -38,8 +40,21 @@ void* thread_socket2tun()
         {
         	continue;
         }
-        current_connection->data_sent += rc;
-        rc = write(current_connection->tun_fd, buffer, rc);
+
+        /* Decrypt */
+        unsigned char decryptedtext[20000];
+        unsigned char tag[16];
+
+        int decrypted_len = vpn_aes_decrypt(buffer, rc, aad, strlen(aad), tag, key, IV, decryptedtext);
+        if(decryptedtext_len < 0)
+	    {
+	        /* Verify error */
+	        printf("Decrypted text failed to verify\n");
+	        continue;
+	    }
+
+        current_connection->data_sent += decrypted_len;
+        rc = write(current_connection->tun_fd, decryptedtext, decrypted_len);
 	}
 }
 
@@ -62,8 +77,14 @@ void* thread_tun2socket()
         {
         	continue;
         }
+
+        /* Encrypt */
+        unsigned char ciphertext[20000];
+        unsigned char tag[16];
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+
         current_connection->data_recv += rc;
-        rc = sendto(current_connection->udp_socket, buffer, rc, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
+        rc = sendto(current_connection->udp_socket, ciphertext, cipher_len, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
 	}
 }
 
@@ -126,9 +147,7 @@ static void handshake()
 	current_connection->bufio = BIO_new_mem_buf((void*)p, rc);
 	current_connection->myRSA = PEM_read_bio_RSAPublicKey(current_connection->bufio, 0, 0, 0);
 
-	char* test = "Joebayer";
-
-	struct crypto_message* msg = vpn_rsa_encrypt(test, strlen(test), current_connection->myRSA);
+	struct crypto_message* msg = vpn_rsa_encrypt(key, strlen(key), current_connection->myRSA);
 
    	printf("%d\n", msg->size);
 
@@ -149,6 +168,7 @@ int start_vpn_client(const char* route, const char* server_ip)
 	signal(SIGINT, stop_client);
 
 	current_connection = malloc(sizeof(struct vpn_connection));
+	OpenSSL_add_all_algorithms();
 
 	/* Create UDP socket. */
 	current_connection->udp_socket = create_udp_socket(&(current_connection->server_addr), (uint8_t*) server_ip);

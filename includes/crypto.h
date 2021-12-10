@@ -4,11 +4,18 @@
 #include "common.h"
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+
+#include <openssl/evp.h>
+#include <openssl/aes.h>
+
 #include <openssl/err.h>
 
 #define KEY_LENGTH 2048
 #define PUB_EXP 3
 
+
+extern const unsigned char IV[];
+extern const unsigned char aad[];
 
 struct crypto_instance
 {
