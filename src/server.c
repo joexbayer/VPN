@@ -190,7 +190,7 @@ void* thread_tun2socket()
 
         char* encrypt_tag = malloc(cipher_len+16);
         memcpy(encrypt_tag, tag, 16);
-        memcpy(encrypt_tag, ciphertext, cipher_len);
+        memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
         /* Replace destination with user chosen ip */
         hdr->daddr = conn->vip_in;
