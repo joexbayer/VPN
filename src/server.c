@@ -73,10 +73,6 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
         case ALIVE:
             ;
 
-            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
-            hdr->saddr = ntohl(hdr->saddr);
-            conn->vip_in = hdr->saddr;
-
             /* Decrypt */
             unsigned char decryptedtext[20000];
             unsigned char* tag = malloc(16);
@@ -97,6 +93,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
                 printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", decrypted_len, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
 
             /* Replace source with given out ip address  */
+            conn->vip_in = hdr->saddr;
             hdr->saddr = conn->vip_out;
             hdr->saddr = htonl(hdr->saddr);
 
