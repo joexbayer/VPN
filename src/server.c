@@ -201,10 +201,9 @@ void* thread_tun2socket()
         // memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
         rc = sendto(registry->udp_socket, buffer, rc, 0, (struct sockaddr*)conn->connection, client_struct_length);
-        printf("%d\n", cipher_len+16);
         conn->data_recv += cipher_len;
         registry->data_in += cipher_len;
-        free(encrypt_tag);
+        //free(encrypt_tag);
     }
 }
 
