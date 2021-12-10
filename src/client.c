@@ -98,7 +98,15 @@ static void start_threads()
 
 }
 
-
+/** handshake
+ * Handshake for exchanging crypto information from server.
+ * @void: 
+ * 
+ * Connects to the server, exchanges public key and sends over 
+ * symmetric secret key.
+ * 
+ *  returns void.
+ */
 static void handshake()
 {
 
@@ -120,12 +128,11 @@ static void handshake()
 
 	char* test = "Joebayer";
 
-	struct crypto_message* msg = vpn_encrypt(test, strlen(test), current_connection->myRSA);
+	struct crypto_message* msg = vpn_rsa_encrypt(test, strlen(test), current_connection->myRSA);
 
    	printf("%d\n", msg->size);
 
 	rc = sendto(current_connection->udp_socket, msg->buffer, msg->size, 0, (struct sockaddr*)&(current_connection->server_addr), sizeof(current_connection->server_addr));
-
 	rc = read(current_connection->udp_socket, buffer, 100);
    	if(rc <= 0)
     {
@@ -133,6 +140,8 @@ static void handshake()
     }
 
     printf("%s", buffer);
+    free(msg->buffer);
+    free(msg);
 }
 
 int start_vpn_client(const char* route, const char* server_ip)

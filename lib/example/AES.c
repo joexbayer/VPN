@@ -27,26 +27,23 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad,
     int len = 0, ciphertext_len = 0;
 
     /* Create and initialise the context */
-    if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+    ctx = EVP_CIPHER_CTX_new();
 
     /* Initialise the encryption operation. */
-    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL))
-        handleErrors();
+    EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
 
     /* Set IV length if default 12 bytes (96 bits) is not appropriate */
-    if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
-        handleErrors();
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL);
 
     /* Initialise key and IV */
-    if(1 != EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv)) handleErrors();
+    EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv);
 
     /* Provide any AAD data. This can be called zero or more times as
      * required
      */
     if(aad && aad_len > 0)
     {
-        if(1 != EVP_EncryptUpdate(ctx, NULL, &len, aad, aad_len))
-            handleErrors();
+        EVP_EncryptUpdate(ctx, NULL, &len, aad, aad_len);
     }
 
     /* Provide the message to be encrypted, and obtain the encrypted output.
@@ -54,21 +51,18 @@ int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *aad,
      */
     if(plaintext)
     {
-        if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-            handleErrors();
-
+        EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len);
         ciphertext_len = len;
     }
 
     /* Finalise the encryption. Normally ciphertext bytes may be written at
      * this stage, but this does not occur in GCM mode
      */
-    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) handleErrors();
+    EVP_EncryptFinal_ex(ctx, ciphertext + len, &len);
     ciphertext_len += len;
 
     /* Get the tag */
-    if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag))
-        handleErrors();
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, 16, tag);
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
@@ -84,26 +78,23 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad,
     int len = 0, plaintext_len = 0, ret;
 
     /* Create and initialise the context */
-    if(!(ctx = EVP_CIPHER_CTX_new())) handleErrors();
+    ctx = EVP_CIPHER_CTX_new();
 
     /* Initialise the decryption operation. */
-    if(!EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL))
-        handleErrors();
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), NULL, NULL, NULL);
 
     /* Set IV length. Not necessary if this is 12 bytes (96 bits) */
-    if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL))
-        handleErrors();
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, 16, NULL);
 
     /* Initialise key and IV */
-    if(!EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv)) handleErrors();
+    EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv);
 
     /* Provide any AAD data. This can be called zero or more times as
      * required
      */
     if(aad && aad_len > 0)
     {
-        if(!EVP_DecryptUpdate(ctx, NULL, &len, aad, aad_len))
-            handleErrors();
+        EVP_DecryptUpdate(ctx, NULL, &len, aad, aad_len);
     }
 
     /* Provide the message to be decrypted, and obtain the plaintext output.
@@ -111,15 +102,13 @@ int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *aad,
      */
     if(ciphertext)
     {
-        if(!EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
-            handleErrors();
+        EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len);
 
         plaintext_len = len;
     }
 
     /* Set expected tag value. Works in OpenSSL 1.0.1d and later */
-    if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag))
-        handleErrors();
+    EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, 16, tag);
 
     /* Finalise the decryption. A positive return value indicates success,
      * anything else is a failure - the plaintext is not trustworthy.

@@ -20,6 +20,73 @@ void stop_server()
 }
 
 /**
+ * handle_vpn_connection - Handles a incomming VPN connection
+ * @conn: current connection
+ *
+ * State machine handshake.
+ * Negotiates secret or forwards packet.
+ * 
+ * returns void
+ */
+void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc)
+{
+    switch(conn->state)
+    {
+        case CONNECTED:
+            rc = sendto(registry->udp_socket, crypto->pub_key, strlen(crypto->pub_key), 0, (struct sockaddr*)conn->connection, client_struct_length);
+            conn->state = REGISTERED;
+
+            if(DEBUG)
+                printf("Sent public key to new client\n");
+
+            break;
+
+        case REGISTERED:
+            ;
+            struct crypto_message* msg = vpn_rsa_decrypt(crypto, buffer, rc);
+            if(msg == NULL)
+            {
+                printf("Client sent invalid message in REGISTERED state\n");
+                continue;
+            }
+
+            /* Allocate memory for key and add 0 terminator */
+            conn->key = malloc(msg->size+1);
+            memcpy(conn->key, msg->buffer, msg->size);
+            conn->key[msg->size+1] = 0;
+
+            conn->state = ALIVE;
+            if(DEBUG)
+                printf("Registered new key for connection: %s\n", conn->key);
+
+            char* ok = "OK";
+            rc = sendto(registry->udp_socket, ok, strlen(ok), 0, (struct sockaddr*)conn->connection, client_struct_length);
+
+            free(msg->buffer);
+            free(msg);
+            break;
+
+        case ALIVE:
+            ;
+            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+            hdr->saddr = ntohl(hdr->saddr);
+
+            if(DEBUG)
+                printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
+
+            /* Replace source with given out ip address  */
+            hdr->saddr = conn->vip_out;
+            hdr->saddr = htonl(hdr->saddr);
+
+            conn->data_sent += rc;
+            registry->data_out += rc;
+            rc = write(registry->tun_fd, buffer, rc);
+            break;
+    }
+}
+
+
+/**
  * thread_socket2tun - Fowards packets from socket to tun
  * @arg: potential arguments
  *
@@ -60,57 +127,8 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
-
-        switch(conn->state)
-        {
-            case CONNECTED:
-                rc = sendto(registry->udp_socket, crypto->pub_key, strlen(crypto->pub_key), 0, (struct sockaddr*)conn->connection, client_struct_length);
-                conn->state = REGISTERED;
-
-                //if(DEBUG)
-                printf("Sent public key to new client\n");
-
-                break;
-
-            case REGISTERED:
-                ;
-                struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
-                if(msg == NULL)
-                {
-                    printf("Client sent invalid message in REGISTERED state\n");
-                    continue;
-                }
-
-                /* Allocate memory for key and add 0 terminator */
-                conn->key = malloc(msg->size+1);
-                memcpy(conn->key, msg->buffer, msg->size);
-                conn->key[msg->size+1] = 0;
-
-                conn->state = ALIVE;
-
-                printf("Registered new key for connection: %s\n", conn->key);
-
-                char* ok = "OK";
-                rc = sendto(registry->udp_socket, ok, strlen(ok), 0, (struct sockaddr*)conn->connection, client_struct_length);
-                break;
-
-            case ALIVE:
-                ;
-                struct ip_hdr* hdr = (struct ip_hdr*) buffer;
-                hdr->saddr = ntohl(hdr->saddr);
-
-                if(DEBUG)
-                    printf("recv: %d bytes from virutal ip %d, real ip %d, subnet ip: %d\n", rc, hdr->saddr, client_addr.sin_addr.s_addr, conn->vip_out);
-
-                /* Replace source with given out ip address  */
-                hdr->saddr = conn->vip_out;
-                hdr->saddr = htonl(hdr->saddr);
-
-                conn->data_sent += rc;
-                registry->data_out += rc;
-                rc = write(registry->tun_fd, buffer, rc);
-                break;
-        }
+        handle_vpn_connection(conn, buffer, rc);
+        
     }
 }
 

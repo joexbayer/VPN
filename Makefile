@@ -7,6 +7,8 @@ CRYPTO_FLAGS = -lm -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/l
 all: build-client
 
 rsa: build-rsa-example
+
+aes: build-aes-example
 	
 build-client: src/client.c $(COMMON)
 	gcc src/client.c $(COMMON) -pthread $(CFLAGS) $(CRYPTO_FLAGS) -o client.out
@@ -17,6 +19,9 @@ build-server: src/server.c $(COMMON)
 build-rsa-example:
 	gcc lib/example/rsa.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o ./build/rsa_server.out
 	gcc lib/example/rsa_c.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o ./build/rsa_client.out
+
+build-aes-example:
+	gcc lib/example/AES.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o ./build/aes.out
 
 client: build-client
 	sudo ./client.out default 192.168.1.8

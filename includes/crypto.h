@@ -31,8 +31,8 @@ struct crypto_message
 
 struct crypto_instance* crypto_init();
 void free_crypto_instance(struct crypto_instance* instance);
-struct crypto_message* vpn_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA);
-struct crypto_message* vpn_decrypt(struct crypto_instance* instance, uint8_t* ciphertext, uint32_t size);
+struct crypto_message* vpn_rsa_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA);
+struct crypto_message* vpn_rsa_decrypt(struct crypto_instance* instance, uint8_t* ciphertext, uint32_t size);
 
 
 #endif
