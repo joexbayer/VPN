@@ -1,7 +1,7 @@
 #ifndef VPN_REGISTRY_H
 #define VPN_REGISTRY_H value
 
-#include "../../includes/common.h"
+#include "common.h"
 #include "server.h"
 
 /**
@@ -51,7 +51,7 @@ struct vpn_connection
     /* Crypto */
 	uint8_t* key;
 
-}__attribute__((packed));
+};
 
 
 /** struct vpn_registry
@@ -78,7 +78,7 @@ struct vpn_registry
     
 	uint8_t* vpn_ip;
 	uint32_t vpn_ip_raw;
-    uint32_t hosts;
+    int hosts;
 
     int udp_socket;
     int tun_fd;

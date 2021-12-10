@@ -1,5 +1,4 @@
-#include "../../includes/vpn_registry.h"
-#include "../../includes/server.h"
+#include "../includes/vpn_registry.h"
 #include <math.h>
 
 
@@ -27,7 +26,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 
     /* Allocate space for hosts */
     char* hosts_str = strchr((char*) ip, '/');
-    registry->hosts = pow(2, 32-atoi(hosts_str+1));
+    registry->hosts = pow(2, 32-atoi(hosts_str+1))-1; /* Use 2^(32-x) to calculate amount of hosts in network. */
     registry->vpn_connection_registry = malloc(registry->hosts * sizeof(struct vpn_connection*));
 
     /* IP char* to int */
@@ -43,12 +42,12 @@ struct vpn_registry* create_registry(uint8_t* ip)
     registry->size = 0;
 
     /* Set connections to NULL */
-    for (int i = 0; i < MAX_CONNECTIONS; ++i)
+    for (int i = 0; i < registry->hosts; ++i)
     {
         registry->vpn_connection_registry[i] = NULL;
     }
 
-    printf("VPN registry successfully created!\n");
+    printf("VPN registry successfully created with subnet %s having %d hosts.\n", registry->vpn_ip, registry->hosts);
 
     return registry;
 }
@@ -65,7 +64,7 @@ struct vpn_registry* create_registry(uint8_t* ip)
 inline int free_vpn_registry(struct vpn_registry* reg)
 {
 
-    for (int i = 0; i < registry->hosts; ++i)
+    for (int i = 0; i < reg->hosts; ++i)
     {
         if(reg->vpn_connection_registry[i] == NULL)
         {

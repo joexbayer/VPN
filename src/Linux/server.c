@@ -138,8 +138,8 @@ void start_server(const char* network)
     registry = create_registry((uint8_t*) network);
 
     struct sockaddr_in server;
-    registry->udp_socket = create_udp_socket(&server);
-    registry->tun_fd = create_tun_interface();
+    registry->udp_socket = create_udp_socket(&server, INADDR_ANY);
+    registry->tun_fd = create_tun_interface(network);
 
     int conf = configure_ip_forwarding(network);
     if(conf < 0)
@@ -152,7 +152,7 @@ void start_server(const char* network)
     if (pthread_mutex_init(&lock, NULL) != 0)
     {
         printf("\n mutex init failed\n");
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     /* Create thread for incomming client packets */
@@ -173,7 +173,7 @@ void start_server(const char* network)
     {
         sleep(3);
 
-        printf("\rConnected Users: %d, Sending: %d kb/s, Receving: %d kb/s", registry->size, (data_in/1024)/3, (data_out/1024)/3);
+        printf("\rConnected Users: %d, Sending: %d kb/s, Receving: %d kb/s", registry->size, (registry->data_in/1024)/3, (registry->data_out/1024)/3);
         fflush(stdout);
 
         pthread_mutex_lock(&lock);

@@ -4,15 +4,21 @@
 
 ## Usage:
 
-### Client (Currently only MacOS support)
+### Client (Only MacOS / Linux support)
+
+For forwarding all traffic to VPN
 ```bash
 make client
+```
+or choose route yourself
+```bash
+make build-client
 ./client.out <route> <ip of vpn server>
 ```
 
-### Server Currently only Linux support
+### Server (Only Linux support)
 ```bash
-make server
+make build-server
 ./server.out
 ```
 

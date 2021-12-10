@@ -12,7 +12,14 @@ static char* gateway;
 int restore_gateway()
 {
 	char cmd [1000] = {0x0};
+    #ifdef __APPLE__
     sprintf(cmd,"route add default %s", gateway);
+    #endif
+
+    #ifdef __linux__
+    sprintf(cmd,"ip route add default via %s", gateway);
+    #endif
+
     int sys = system("route delete default");
     sys = system(cmd);
 
@@ -31,7 +38,14 @@ int restore_gateway()
 static int save_current_gateway()
 {
 	char cmd [1000] = {0x0};
-    sprintf(cmd,"route -n get default | grep gateway | cut -d ':' -f 2 | awk '{$1=$1};1'"); // iOS specific!
+
+    #ifdef __APPLE__
+    sprintf(cmd,"route -n get default | grep gateway | cut -d ':' -f 2 | awk '{$1=$1};1'");
+    #endif
+    #ifdef __linux__
+    sprintf(cmd,"/sbin/ip route | awk '/default/ { print $3 }'");
+    #endif
+
     FILE* fp = popen(cmd, "r");
     char line[256]={0x0};
 
@@ -63,15 +77,31 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 		printf("[ERROR] Could not save current gateway!\n");
 		exit(EXIT_FAILURE);
 	}
-	/* Delete default route and add new. */
-	int sys = system("route delete default");
 
-	char cmd [1000] = {0x0};
+    /* Delete route and add new. */
+    char cmd [1000] = {0x0};
+    sprintf(cmd,"route delete %s", route);
+	int sys = system(cmd);
+
+    #ifdef __APPLE__
     sprintf(cmd,"route add %s 10.0.0.255", route);
+    #endif
+
+    #ifdef __linux__
+    sprintf(cmd,"ip route add %s via 10.0.0.1", route);
+    #endif
+
     sys = system(cmd);
 
 	/* Add rule to allow traffic to vpn server */
+    #ifdef __APPLE__
     sprintf(cmd,"route add %s %s", server_ip, gateway);
+    #endif
+
+    #ifdef __linux__
+    sprintf(cmd,"ip route add %s via %s", server_ip, gateway);
+    #endif
+
     sys = system(cmd);
 
     return sys;
@@ -79,7 +109,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
 
 /**
  * create_tun_interface - Opens a tun device.
- * @void:
+ * @virtual_subnet: subet for ifconfig (needed for linux.)
  *
  * Creates and opens tun0 interface device.
  * Also configurates the tun0 device to point
@@ -87,7 +117,7 @@ int configure_route(uint8_t* route, uint8_t* server_ip)
  * 
  * returns fd of device or -1 on error.
  */
-int create_tun_interface()
+int create_tun_interface(char* virtual_subnet)
 {
     int fd = -1;
 
@@ -128,6 +158,15 @@ int create_tun_interface()
         exit(1);
     }
 
+    char cmd [1000] = {0x0};
+    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
+    int sys = system(cmd);
+    if(sys < 0)
+    {
+        printf("Could not activate tun device!\n");
+        exit(EXIT_FAILURE);
+    }
+
     #endif
 
     return fd; 
@@ -154,8 +193,8 @@ int create_udp_socket(struct sockaddr_in* server_addr, uint8_t* server_ip)
     server_addr->sin_family = AF_INET;
     server_addr->sin_port = htons(VPN_PORT);
 
-    /* If server_ip is not INADDR_ANY then assign and return.    */
-    if(server_ip != 0){
+    /* If server_ip is NOT INADDR_ANY then assign and return.    */
+    if(server_ip != INADDR_ANY){
         server_addr->sin_addr.s_addr = inet_addr((char*) server_ip);
         return sockfd;
     }
@@ -188,9 +227,7 @@ int create_udp_socket(struct sockaddr_in* server_addr, uint8_t* server_ip)
 int configure_ip_forwarding(char* virtual_subnet)
 {
     char cmd [1000] = {0x0};
-    sprintf(cmd,"ifconfig tun0 %s up", virtual_subnet);
-    int sys = system(cmd);
-    sys = system("sysctl -w net.ipv4.ip_forward=1");
+    int sys = system("sysctl -w net.ipv4.ip_forward=1");
 
     sprintf(cmd,"iptables -t nat -A POSTROUTING -s %s ! -d %s -m comment --comment 'vpn' -j MASQUERADE", virtual_subnet, virtual_subnet);
     sys = system(cmd);
