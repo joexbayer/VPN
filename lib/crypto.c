@@ -72,7 +72,7 @@ struct crypto_message* vpn_decrypt(struct crypto_instance* instance, uint8_t* ci
 struct crypto_message* vpn_encrypt(uint8_t* cleartext, uint32_t size, RSA *myRSA)
 {
 	char* encrypt = malloc(RSA_size(myRSA));
-    int encrypt_len = RSA_public_encrypt(strlen(size), (unsigned char*)cleartext, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
+    int encrypt_len = RSA_public_encrypt(size, (unsigned char*)cleartext, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
     if(encrypt_len == -1)
     {
     	printf("Something went wrong encrypting message!\n");

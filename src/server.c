@@ -73,6 +73,7 @@ void* thread_socket2tun()
                 break;
 
             case REGISTERED:
+                ;
                 struct crypto_message* msg = vpn_decrypt(crypto, buffer, rc);
                 if(msg == NULL)
                 {
@@ -87,7 +88,7 @@ void* thread_socket2tun()
 
                 conn->state = ALIVE;
 
-                printf("Registered new key for connection: %s\n". conn->key);
+                printf("Registered new key for connection: %s\n", conn->key);
 
                 char* ok = "OK";
                 rc = sendto(registry->udp_socket, ok, strlen(ok), 0, (struct sockaddr*)conn->connection, client_struct_length);
