@@ -172,7 +172,7 @@ void* thread_tun2socket()
         if(rc <= 0)
         {
             continue;
-        }s
+        }
 
         struct ip_hdr* hdr = (struct ip_hdr*) buffer;
         hdr->daddr = ntohl(hdr->daddr);
