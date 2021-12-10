@@ -94,7 +94,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
 
             conn->data_sent += decrypted_len;
             registry->data_out += decrypted_len;
-            rc = write(registry->tun_fd, decryptedtext, decrypted_len, client_addr);
+            rc = write(registry->tun_fd, decryptedtext, decrypted_len);
             break;
     }
 }
@@ -141,7 +141,7 @@ void* thread_socket2tun()
         }
         pthread_mutex_unlock(&lock);
 
-        handle_vpn_connection(conn, buffer, rc);
+        handle_vpn_connection(conn, buffer, rc, client_addr);
         
     }
 }
