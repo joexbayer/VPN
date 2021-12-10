@@ -45,10 +45,10 @@ void* thread_socket2tun()
 
          /* Decrypt */
         unsigned char decryptedtext[20000];
-        unsigned char* tag2 = malloc(16);
-        memcpy(tag2, buffer, 16);
+        unsigned char* tag = malloc(16);
+        memcpy(tag, buffer, 16);
 
-        int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag2, key, IV, decryptedtext);
+        int decrypted_len = vpn_aes_decrypt(buffer+16, rc-16, aad, strlen(aad), tag, key, IV, decryptedtext);
         if(decrypted_len < 0)
         {
             /* Verify error */
