@@ -2,7 +2,7 @@
 #include <math.h>
 
 
-#define DEBUG 1
+#define DEBUG 0
 
 /**
  * create_registry - Creates a vpn registry, bound to a ip.

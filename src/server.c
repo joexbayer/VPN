@@ -1,6 +1,6 @@
 #include "../includes/server.h"
 
-#define DEBUG 1
+#define DEBUG 0
 
 /* Threads */
 pthread_t tid[2];
@@ -183,6 +183,13 @@ void* thread_tun2socket()
             continue;
         }
 
+        /* Replace destination with user chosen ip */
+        hdr->daddr = conn->vip_in;
+        hdr->daddr = htonl(hdr->daddr);
+        
+        if(DEBUG)
+            printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
+
         /* Encrypt */
         unsigned char ciphertext[20000];
         unsigned char tag[16];
@@ -192,15 +199,8 @@ void* thread_tun2socket()
         memcpy(encrypt_tag, tag, 16);
         memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
-        /* Replace destination with user chosen ip */
-        hdr->daddr = conn->vip_in;
-        hdr->daddr = htonl(hdr->daddr);
-        
-        if(DEBUG)
-            printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
-
-        conn->data_recv += rc;
-        registry->data_in += rc;
+        conn->data_recv += cipher_len;
+        registry->data_in += cipher_len;
         rc = sendto(registry->udp_socket, encrypt_tag, cipher_len+16, 0, (struct sockaddr*)conn->connection, client_struct_length);
     }
 }
