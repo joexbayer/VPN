@@ -194,7 +194,7 @@ int create_udp_socket(struct sockaddr_in* server_addr, uint8_t* server_ip)
     server_addr->sin_port = htons(VPN_PORT);
 
     /* If server_ip is NOT INADDR_ANY then assign and return.    */
-    if(strcmp(server_ip, "0") == 0){
+    if(strcmp((char*)server_ip, "0") == 0){
         server_addr->sin_addr.s_addr = inet_addr((char*) server_ip);
         return sockfd;
     }
