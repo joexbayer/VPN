@@ -60,11 +60,11 @@ int main(int argc, char *argv[])
 	BIO *bufio = BIO_new_mem_buf((void*)p, n);
 	RSA *myRSA = PEM_read_bio_RSAPublicKey(bufio, 0, 0, 0);
 
-	char* test = "Joebayer test";
+	char* test = "Joebayer";
 
     char* encrypt = malloc(RSA_size(myRSA));
     int encrypt_len = RSA_public_encrypt(strlen(test), (unsigned char*)test, (unsigned char*)encrypt, myRSA, RSA_PKCS1_OAEP_PADDING);
-
+    printf("%d\n", encrypt_len);
     int rc = send(sockfd , encrypt ,encrypt_len, 0 );
 	if(rc < 0)
 	{
