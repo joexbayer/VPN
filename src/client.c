@@ -55,7 +55,7 @@ void* thread_socket2tun()
         // }
 
         current_connection->data_sent += decrypted_len;
-        rc = write(current_connection->tun_fd, decryptedtext, decrypted_len);
+        rc = write(current_connection->tun_fd, buffer, rc);
         free(tag);
 	}
 }
