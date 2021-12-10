@@ -73,6 +73,10 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
         case ALIVE:
             ;
 
+            struct ip_hdr* hdr = (struct ip_hdr*) buffer;
+            hdr->saddr = ntohl(hdr->saddr);
+            conn->vip_in = hdr->saddr;
+
             /* Decrypt */
             unsigned char decryptedtext[20000];
             unsigned char* tag = malloc(16);
