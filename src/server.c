@@ -1,4 +1,4 @@
-#include "../../includes/server.h"
+#include "../includes/server.h"
 
 #define DEBUG 0
 
