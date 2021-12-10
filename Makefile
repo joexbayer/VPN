@@ -19,7 +19,7 @@ build-rsa-example:
 	gcc lib/example/rsa_c.c -I/usr/local/opt/openssl@3/include -L/usr/local/opt/openssl/lib -lssl -lcrypto -o ./build/rsa_client.out
 
 client: build-client
-	sudo ./client.out default 18.192.21.126
+	sudo ./client.out default 192.168.1.8
 
 server: build-server
 	sudo ./server.out
