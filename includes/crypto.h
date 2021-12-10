@@ -27,7 +27,7 @@ struct crypto_message
 {
 	char* buffer;
 	uint32_t size;
-}
+};
 
 struct crypto_instance* crypto_init();
 void free_crypto_instance(struct crypto_instance* instance);

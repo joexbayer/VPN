@@ -6,14 +6,14 @@ struct crypto_instance* crypto_init()
 	struct crypto_instance* instance = malloc(sizeof(struct crypto_instance));
 
     instance->bne = BN_new();
-    int ret = BN_set_word(bne, PUB_EXP);
+    int ret = BN_set_word(instance->bne, PUB_EXP);
 
     // Generate key pair
     printf("Generating RSA (%d bits) keypair...\n", KEY_LENGTH);
 
     // create key
     instance->keypair = RSA_new();
-    ret = RSA_generate_key_ex(keypair, KEY_LENGTH, instance->bne, NULL);
+    ret = RSA_generate_key_ex(instance->keypair, KEY_LENGTH, instance->bne, NULL);
 
     // To get the C-string PEM form:
     instance->pri = BIO_new(BIO_s_mem());
