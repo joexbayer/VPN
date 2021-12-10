@@ -34,7 +34,9 @@ struct vpn_registry* create_registry(uint8_t* ip)
     inet_pton(AF_INET, (char *)registry->vpn_ip, &sa.sin_addr);
 
     if(DEBUG)
+    {
         printf("converted ip %s to %d\n", registry->vpn_ip, sa.sin_addr.s_addr);
+    }
 
     registry->vpn_ip_raw = sa.sin_addr.s_addr;
     registry->size = 0;

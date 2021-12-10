@@ -1,4 +1,4 @@
-#include "../../includes/client.h"
+#include "../includes/client.h"
 
 static pthread_t tid[2];
 static struct vpn_connection* current_connection;
