@@ -40,7 +40,7 @@ struct crypto_instance* crypto_init()
     printf("\n%s\n", instance->pub_key);
     printf("Created RSA keypair.\n");
 
-    return ret;
+    return instance;
 };
 
 void free_crypto_instance(struct crypto_instance* instance)
