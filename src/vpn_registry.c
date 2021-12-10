@@ -2,7 +2,7 @@
 #include <math.h>
 
 
-#define DEBUG 0
+#define DEBUG 1
 
 /**
  * create_registry - Creates a vpn registry, bound to a ip.
@@ -105,7 +105,7 @@ inline struct vpn_connection* register_connection(struct vpn_registry* registry,
             struct sockaddr_in* conn = malloc(sizeof(struct sockaddr_in));
             memcpy(conn, &new_connection, sizeof(struct sockaddr_in));
             vpc->connection = conn;
-            
+
             vpc->state = CONNECTED;
 
             vpc->vip_in = client_virtual_ip;
