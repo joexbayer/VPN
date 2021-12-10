@@ -85,6 +85,7 @@ void handle_vpn_connection(struct vpn_connection* conn, char* buffer, int rc, st
                 printf("Decrypted text failed to verify\n");
                 break;
             }
+            free(tag);
 
             struct ip_hdr* hdr = (struct ip_hdr*) decryptedtext;
             hdr->saddr = ntohl(hdr->saddr);
@@ -171,7 +172,7 @@ void* thread_tun2socket()
         if(rc <= 0)
         {
             continue;
-        }
+        }s
 
         struct ip_hdr* hdr = (struct ip_hdr*) buffer;
         hdr->daddr = ntohl(hdr->daddr);
@@ -192,21 +193,19 @@ void* thread_tun2socket()
         if(DEBUG)
             printf("sending %d bytes to client real ip %d with virtual ip %d\n", rc, conn->connection->sin_addr.s_addr, hdr->daddr);
 
-        // /* Encrypt */
-        // unsigned char ciphertext[20000];
-        // unsigned char tag[16];
-        // int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
+        /* Encrypt */
+        unsigned char ciphertext[20000];
+        unsigned char tag[16];
+        int cipher_len = vpn_aes_encrypt(buffer, rc, aad, strlen(aad), key, IV, ciphertext, tag);
 
-        // unsigned char* encrypt_tag = malloc(cipher_len+16);
-        // memcpy(encrypt_tag, tag, 16);
-        // memcpy(encrypt_tag+16, ciphertext, cipher_len);
+        unsigned char* encrypt_tag = malloc(cipher_len+16);
+        memcpy(encrypt_tag, tag, 16);
+        memcpy(encrypt_tag+16, ciphertext, cipher_len);
 
-        printf("%d\n", hdr->daddr);
-
-        rc = sendto(registry->udp_socket, buffer, rc, 0, (struct sockaddr*)conn->connection, client_struct_length);
+        rc = sendto(registry->udp_socket, encrypt_tag, cipher_len+16, 0, (struct sockaddr*)conn->connection, client_struct_length);
         conn->data_recv += rc;
         registry->data_in += rc;
-        //free(encrypt_tag);
+        free(encrypt_tag);
     }
 }
 
