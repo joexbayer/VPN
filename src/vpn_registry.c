@@ -71,7 +71,7 @@ inline int free_vpn_registry(struct vpn_registry* reg)
             continue;
         }
         free(reg->vpn_connection_registry[i]->connection);
-        free(reg->vpn_connection_registry[i]->key)
+        free(reg->vpn_connection_registry[i]->key);
         free(reg->vpn_connection_registry[i]);
     }
 
