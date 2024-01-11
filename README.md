@@ -1,5 +1,8 @@
 # VPN
 
+## Note: This is a old project and requires some old config tools such as ifconfig.
+Not for real use.
+
 ### VPN that tunnels IP (default = all traffic) to specified VPN server.
 
 ## Usage:
@@ -25,7 +28,7 @@ make build-server
 ## Needs OPENSSL for encryption.
 ### Linux
 ```bash
-apt-get install libssl-dev
+apt-get install libssl-dev net-tools iptables
 ```
 ### MacOS (Brew)
 ```bash
